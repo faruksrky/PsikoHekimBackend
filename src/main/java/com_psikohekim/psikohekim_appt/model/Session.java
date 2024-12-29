@@ -1,11 +1,9 @@
 package com_psikohekim.psikohekim_appt.model;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import jakarta.persistence.Id;
 
 import java.math.BigDecimal;
@@ -13,8 +11,8 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Entity
 public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -2,38 +2,38 @@ package com_psikohekim.psikohekim_appt.model;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Entity
 public class Patient {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Long patientID; // unique identifier for the patient
+    private Long patientID;
     @Column (nullable = false)
-    private String firstName; // Patient's first Name
+    private String patientFirstName;
     @Column (nullable = false)
-    private String lastName;
-    private String gender;// Patient gender
-    private LocalDateTime dateOfBirth; // // Patient's date of birth
-    private String email; // Patient's email
+    private String patientLastName;
+    private String patientGender;
+    private Integer patientAge;
+    private String patientEmail;
     @Column (nullable = false)
-    private String phoneNumber; // Patient's phone Number
-    @ManyToOne
-    @JoinColumn(name = "psychologistId", nullable = false)
-    private Psychologist psychologist; // Patient's psychologist
-    private String country; // Patient's country
-    private String address; // Patient's address
+    private String patientPhoneNumber;
+
+    @ManyToMany(mappedBy = "patients", fetch = FetchType.EAGER)
+    private Set<Therapist> therapists = new HashSet<>();
+
+    private String patientCountry;
+    private String patientCity;
+    private String patientAddress;
     @OneToMany(mappedBy = "patient")
-    private List<Payment> payments; // List of payments
+    private List<Payment> payments;
 
 
 
