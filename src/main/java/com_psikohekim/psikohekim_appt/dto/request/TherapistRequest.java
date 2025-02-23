@@ -1,6 +1,5 @@
 package com_psikohekim.psikohekim_appt.dto.request;
 
-import com_psikohekim.psikohekim_appt.enums.Experience;
 import lombok.Getter;
 import lombok.Setter;
 

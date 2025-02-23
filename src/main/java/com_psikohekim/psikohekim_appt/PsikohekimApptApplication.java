@@ -4,7 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-@SpringBootApplication (exclude = {org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class})
+@SpringBootApplication
+@EnableFeignClients(basePackages = "com_psikohekim.psikohekim_appt.service") // FeignClient'lerin bulunduğu paket
 public class PsikohekimApptApplication {
 
 	public static void main(String[] args) {

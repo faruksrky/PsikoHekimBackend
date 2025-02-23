@@ -3,8 +3,6 @@ package com_psikohekim.psikohekim_appt.dto.request;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Setter
 public class PatientRequest {

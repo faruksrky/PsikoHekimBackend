@@ -10,9 +10,9 @@ public enum PsychologistAreas {
     private final int priority;
 
     PsychologistAreas(int priority) {
-    this.priority = priority;
+        this.priority = priority;
     }
 
     public int getPriority() {
-    return priority;}
+        return priority;}
 }

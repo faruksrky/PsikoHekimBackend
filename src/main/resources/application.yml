@@ -1,6 +1,6 @@
 spring:
   application:
-    name: PsikoHekim
+    name: PsikoHekimApp
   datasource:
     url: jdbc:postgresql://localhost:5432/psiko_db
     username: keycloak
@@ -12,14 +12,36 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 1059165768045-kkikjf6t5rvt2j8r6lpu930lgdt53luo.apps.googleusercontent.com
+            client-secret: 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 # 🛑 Gizli bilgiyi ortam değişkeninden oku
+            redirect-uri: http://localhost:8083/api/google-calendar/callback
+            scope:
+              - https://www.googleapis.com/auth/calendar.readonly
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
 
 server:
   port: 8083
 
 services:
   bpmn:
-    url: http://localhost:8082/api/bpmn/patient
+    url: http://localhost:8082/api/bpmn
+
 
 camunda:
   base-url: http://localhost:8081/engine-rest/engine
   process-key: Process_Patient
+
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com_psikohekim.psikohekim_appt: DEBUG
