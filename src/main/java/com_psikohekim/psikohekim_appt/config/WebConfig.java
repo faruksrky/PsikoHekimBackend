@@ -36,8 +36,8 @@ public class WebConfig {
                                         "/api/calendar/**",
                                         "/favicon.ico",
                                         "/public/**",
-                                        "therapist/**",
-                                        "patient/**"
+                                        "/therapist/**",
+                                        "/patient/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )

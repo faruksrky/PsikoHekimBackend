@@ -85,6 +85,12 @@ public class TherapistServiceImpl implements TherapistService {
                 .orElse(Collections.emptyList());
     }
 
+    @Override
+    public Therapist findByEmail(String email) {
+        return therapistRepository.findByTherapistEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Lütfen önce bir terapist seçiniz"));
+    }
+
     private void validateTherapistRequest(TherapistRequest therapistReq) throws InvalidRequestException, ConflictException {
         if (therapistRepository.existsByTherapistEmail(therapistReq.getTherapistEmail())) {
             throw new ConflictException("", therapistReq.getTherapistEmail() + " e-posta adresi ile kayıtlı bir terapist zaten var!");

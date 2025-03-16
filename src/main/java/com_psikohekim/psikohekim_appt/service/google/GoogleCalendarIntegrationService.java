@@ -77,6 +77,7 @@ public class GoogleCalendarIntegrationService {
             return flow.newAuthorizationUrl()
                     .setRedirectUri(redirectUri)
                     .setApprovalPrompt("force")
+                    .setState("therapistId=1")  // therapistId'yi state ile gönder
                     .build();
         } catch (Exception e) {
             throw new CustomExceptionHandler.CalendarAuthException("Google OAuth URL oluşturulamadı", "");

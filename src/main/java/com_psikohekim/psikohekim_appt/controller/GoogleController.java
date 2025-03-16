@@ -22,8 +22,15 @@ public class GoogleController {
     @GetMapping("/callback")
     public ResponseEntity<?> handleCallback(
             @RequestParam String code,
-            @RequestParam Long therapistId
+            @RequestParam(name = "state") String state  // state parametresini al
     ) {
+        // state'den therapistId'yi çıkar
+        Long therapistId = 1L; // Şimdilik sabit
+        if (state != null && state.contains("therapistId=")) {
+            String idStr = state.split("therapistId=")[1];
+            therapistId = Long.parseLong(idStr);
+        }
+
         return ResponseEntity.ok(googleCalendarService.handleGoogleCallback(code, therapistId));
     }
 }

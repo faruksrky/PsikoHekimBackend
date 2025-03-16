@@ -6,6 +6,7 @@ import com_psikohekim.psikohekim_appt.dto.response.TherapistResponse;
 import com_psikohekim.psikohekim_appt.exception.ConflictException;
 import com_psikohekim.psikohekim_appt.exception.InvalidRequestException;
 import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
+import com_psikohekim.psikohekim_appt.model.Therapist;
 import com_psikohekim.psikohekim_appt.service.TherapistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -51,5 +52,12 @@ public class TherapistController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new AssignResponse(false, e.getMessage())); // Hata durumunda
         }
+    }
+
+
+    @GetMapping("/by-email")
+    public ResponseEntity<Long> getTherapistIdByEmail(@RequestParam String email) {
+        Therapist therapist = therapistService.findByEmail(email);
+        return ResponseEntity.ok(therapist.getTherapistId());
     }
 }

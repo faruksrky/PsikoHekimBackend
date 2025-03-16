@@ -8,6 +8,7 @@ import com_psikohekim.psikohekim_appt.dto.response.TherapistResponse;
 import com_psikohekim.psikohekim_appt.exception.ConflictException;
 import com_psikohekim.psikohekim_appt.exception.InvalidRequestException;
 import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
+import com_psikohekim.psikohekim_appt.model.Therapist;
 
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface TherapistService {
      List<String> getPsychiatristAreas();
      List<PatientResponse> getPatientsByTherapistId(Long therapistId);
      AssignResponse assignPatientToTherapist (Long therapistId, Long patientId);
+     Therapist findByEmail(String email);
+
 }
