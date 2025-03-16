@@ -8,10 +8,14 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 import java.util.List;
 
 @EnableWebSecurity
@@ -23,17 +27,40 @@ public class WebConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ CORS Konfigürasyonunu dışarı aldık
-                .csrf(AbstractHttpConfigurer::disable) // ✅ CSRF Korumasını Devre Dışı Bıraktık
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/api/google-calendar/**").permitAll() // ✅ Google OAuth Uç Noktalarına İzin Ver
-                                .requestMatchers("/public/**").permitAll() // ✅ Tüm public API'leri aç
-                                .anyRequest().authenticated() // 🔒 Diğer tüm endpointleri authentication zorunlu yap
+                                .requestMatchers(
+                                        "/api/google-calendar/**",
+                                        "/favicon.ico",
+                                        "/public/**"
+                                ).permitAll()
+                                .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // ✅ Stateless (JWT tabanlı auth için gerekli)
+                .sessionManagement(sess ->
+                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
 
         return http.build();
+    }
+
+    @Bean
+    public WebMvcConfigurer webMvcConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                registry.addResourceHandler("/favicon.ico")
+                        .addResourceLocations("classpath:/static/")
+                        .setCachePeriod(3600 * 24);
+            }
+        };
+    }
+
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     @Bean
