@@ -14,6 +14,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   security:
     oauth2:
+      state:
+        secret-key: eaeac4e4cc8a49fbbbff69d918e29c68
       client:
         registration:
           google:

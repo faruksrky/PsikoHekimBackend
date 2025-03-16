@@ -46,8 +46,9 @@ public class CalendarEvent {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId; // Etkinliğin sahibi
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "therapist_id", nullable = false)
+    private Therapist therapist;
 
     private String color; // Etkinlik rengi
 

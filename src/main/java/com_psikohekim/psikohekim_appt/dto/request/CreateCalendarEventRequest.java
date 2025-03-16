@@ -25,8 +25,7 @@ public class CreateCalendarEventRequest {
 
     private String description;
     private String location;
-    private Boolean isAllDay = false;
     private String color;
     private Integer reminderMinutes;
-    private String recurrenceRule;
+    private Long therapistId;
 }

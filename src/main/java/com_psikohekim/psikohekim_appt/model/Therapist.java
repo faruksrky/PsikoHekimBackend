@@ -43,6 +43,9 @@ public class Therapist {
     @Enumerated(EnumType.STRING)
     private Experience yearsOfExperience;
 
+    @OneToMany(mappedBy = "therapist")
+    private List<CalendarEvent> events;
+
     private String therapistEducation;
     private String therapistUniversity;
     private String therapistCertifications;

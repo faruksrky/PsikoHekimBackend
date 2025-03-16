@@ -3,7 +3,6 @@ package com_psikohekim.psikohekim_appt.service.google;
 
 import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -15,7 +14,12 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.Events;
 import com_psikohekim.psikohekim_appt.dto.response.CalendarSyncResponse;
+import com_psikohekim.psikohekim_appt.dto.response.GoogleTokenResponse;
+import com_psikohekim.psikohekim_appt.enums.SyncStatus;
 import com_psikohekim.psikohekim_appt.exception.CustomExceptionHandler;
+import com_psikohekim.psikohekim_appt.model.CustomUserDetails;
+import com_psikohekim.psikohekim_appt.model.Therapist;
+import com_psikohekim.psikohekim_appt.repository.TherapistRepository;
 import com_psikohekim.psikohekim_appt.service.CalendarService;
 import com_psikohekim.psikohekim_appt.model.CalendarEvent;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +28,12 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.security.core.Authentication;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -51,6 +57,7 @@ public class GoogleCalendarIntegrationService {
 
     private final RestTemplate restTemplate;
     private final CalendarService calendarService;
+    private final TherapistRepository therapistRepository;
 
     public String getGoogleOAuthUrl() {
         try {
@@ -69,7 +76,6 @@ public class GoogleCalendarIntegrationService {
 
             return flow.newAuthorizationUrl()
                     .setRedirectUri(redirectUri)
-                    .setState("state")
                     .setApprovalPrompt("force")
                     .build();
         } catch (Exception e) {
@@ -77,15 +83,22 @@ public class GoogleCalendarIntegrationService {
         }
     }
 
-    public CalendarSyncResponse handleGoogleCallback(String code, Long userId) {
-        try {
-            String accessToken = getAccessToken(code);
-            List<CalendarEvent> events = fetchGoogleEvents(accessToken);
-            return calendarService.syncEvents(events, userId, "GOOGLE");
-        } catch (Exception e) {
-            return new CalendarSyncResponse(false, null, e.getMessage());
+        public CalendarSyncResponse handleGoogleCallback(String code, Long therapistId) {
+            try {
+                String accessToken = getAccessToken(code);
+                List<CalendarEvent> events = fetchGoogleEvents(accessToken);
+
+                Therapist therapist = therapistRepository.getReferenceById(therapistId);
+                events.forEach(event -> {
+                    event.setTherapist(therapist);
+                    event.setSource("GOOGLE");
+                });
+
+                return calendarService.syncEvents(events);
+            } catch (Exception e) {
+                return calendarService.buildErrorResponse(e.getMessage());
+            }
         }
-    }
 
     private String getAccessToken(String code) {
         String tokenUrl = "https://oauth2.googleapis.com/token";
@@ -101,7 +114,13 @@ public class GoogleCalendarIntegrationService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-        ResponseEntity<TokenResponse> response = restTemplate.postForEntity(tokenUrl, request, TokenResponse.class);
+
+        // Google TokenResponse yerine kendi sınıfımızı kullanalım
+        ResponseEntity<GoogleTokenResponse> response = restTemplate.postForEntity(
+                tokenUrl,
+                request,
+                GoogleTokenResponse.class
+        );
 
         if (response.getBody() != null && response.getBody().getAccessToken() != null) {
             return response.getBody().getAccessToken();
@@ -176,4 +195,6 @@ public class GoogleCalendarIntegrationService {
 
         return event;
     }
+
+
 }

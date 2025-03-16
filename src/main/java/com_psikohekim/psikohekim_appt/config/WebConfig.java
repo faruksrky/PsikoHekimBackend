@@ -33,8 +33,11 @@ public class WebConfig {
                         authorizeRequests
                                 .requestMatchers(
                                         "/api/google-calendar/**",
+                                        "/api/calendar/**",
                                         "/favicon.ico",
-                                        "/public/**"
+                                        "/public/**",
+                                        "therapist/**",
+                                        "patient/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )
