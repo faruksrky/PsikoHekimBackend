@@ -6,7 +6,9 @@ import java.util.List;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class PatientResponse {
     private Long patientId;
     private String patientFirstName;
@@ -19,5 +21,6 @@ public class PatientResponse {
     private String patientCity;
     private String patientGender;
     private List<TherapistResponse> therapist;
+    private String patientReference;
 
 }

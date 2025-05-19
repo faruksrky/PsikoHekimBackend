@@ -30,6 +30,11 @@ public class PatientController {
         return patientService.getPatients();
     }
 
+    @GetMapping ("/id")
+    public PatientResponse getPatientById(@RequestParam Long id) throws ResourceNotFoundException {
+        return patientService.getPatient(id);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleInvalidTherapistId(IllegalArgumentException ex) {

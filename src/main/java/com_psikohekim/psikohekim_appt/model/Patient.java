@@ -34,6 +34,7 @@ public class Patient {
     private String patientAddress;
     @OneToMany(mappedBy = "patient")
     private List<Payment> payments;
+    private String patientReference;
 
 
 

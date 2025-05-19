@@ -20,7 +20,7 @@ public class Therapist {
     private Long therapistId;
     @Column(nullable = false)
     private String therapistFirstName;
-    private String therapistSurname;
+    private String therapistLastName;
     private String therapistEmail;
     private String therapistPhoneNumber;
     private String therapistAddress;
@@ -38,10 +38,10 @@ public class Therapist {
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
-    private List<String> specializationAreas;
+    private List<String> therapistSpecializationAreas;
 
     @Enumerated(EnumType.STRING)
-    private Experience yearsOfExperience;
+    private Experience therapistYearsOfExperience;
 
     @OneToMany(mappedBy = "therapist")
     private List<CalendarEvent> events;
@@ -49,7 +49,7 @@ public class Therapist {
     private String therapistEducation;
     private String therapistUniversity;
     private String therapistCertifications;
-    private BigDecimal appointmentFee;
+    private BigDecimal therapistAppointmentFee;
     @Column(name = "therapistRating", nullable = false, columnDefinition = "integer default 30")
     private int therapistRating = 30;
 

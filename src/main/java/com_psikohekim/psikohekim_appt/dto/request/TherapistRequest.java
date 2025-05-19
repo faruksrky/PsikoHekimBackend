@@ -9,18 +9,17 @@ import java.util.List;
 @Getter
 @Setter
 public class TherapistRequest {
-
     private String therapistFirstName;
-    private String therapistSurname;
+    private String therapistLastName;
     private String therapistEmail;
     private String therapistPhoneNumber;
     private String therapistAddress;
     private String therapistType;
-    private List<String> specializationAreas;
-    private String yearsOfExperience;
+    private List<String> therapistSpecializationAreas;
+    private String therapistYearsOfExperience;
     private String therapistEducation;
     private String therapistCertifications;
-    private BigDecimal appointmentFee;
+    private BigDecimal therapistAppointmentFee;
     private String therapistUniversity;
     private int therapistRating;
 }

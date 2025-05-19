@@ -14,13 +14,11 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   security:
     oauth2:
-      state:
-        secret-key: eaeac4e4cc8a49fbbbff69d918e29c68
       client:
         registration:
           google:
             client-id: 1059165768045-kkikjf6t5rvt2j8r6lpu930lgdt53luo.apps.googleusercontent.com
-            client-secret: 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 # 🛑 Gizli bilgiyi ortam değişkeninden oku
+            client-secret: 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
             redirect-uri: http://localhost:8083/api/google-calendar/callback
             scope:
               - https://www.googleapis.com/auth/calendar.readonly
@@ -36,11 +34,9 @@ services:
   bpmn:
     url: http://localhost:8082/api/bpmn
 
-
 camunda:
   base-url: http://localhost:8081/engine-rest/engine
   process-key: Process_Patient
-
 
 logging:
   level:

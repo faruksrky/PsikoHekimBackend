@@ -16,5 +16,6 @@ public class PatientRequest {
     private String patientCity;
     private String patientGender;
     private Long therapistId;
+    private String patientReference;
 
 }
