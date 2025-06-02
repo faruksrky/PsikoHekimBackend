@@ -39,12 +39,11 @@ public class WebConfig {
                                         "/public/**",
                                         "/therapist/**",
                                         "/patient/**",
-                                        "/api/users/**"
+                                        "/api/users/**",
+                                        "/process/send-assignment-request",
+                                        "/process/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
-                )
-                .sessionManagement(sess ->
-                        sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
         return http.build();

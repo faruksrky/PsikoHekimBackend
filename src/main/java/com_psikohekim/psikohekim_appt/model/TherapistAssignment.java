@@ -16,9 +16,9 @@ public class TherapistAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String patientId;
     private String therapistId;
+    private String processInstanceKey;
     @Enumerated(EnumType.STRING)
     private AssignmentStatus status = AssignmentStatus.PENDING;
 
@@ -33,4 +33,9 @@ public class TherapistAssignment {
         ACCEPTED,
         REJECTED
     }
+    private String processName;
+    private String description;
+    private String startedBy;
+    private String rejectionReason;
+    private LocalDateTime rejectedAt;
 }

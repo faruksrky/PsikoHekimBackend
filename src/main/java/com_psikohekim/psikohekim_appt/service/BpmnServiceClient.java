@@ -14,8 +14,8 @@ public interface BpmnServiceClient {
     @GetMapping("/tasks")
     List<Map<String, Object>> getTasks(@RequestParam("processInstanceId") String processInstanceId);
 
-    @PostMapping("/complete-task")
-    void completeTask(@RequestBody Map<String, Object> request);
+    @PostMapping("/message")
+    Map<String, Object> publishMessage(@RequestBody Map<String, Object> request);
 }
 
 

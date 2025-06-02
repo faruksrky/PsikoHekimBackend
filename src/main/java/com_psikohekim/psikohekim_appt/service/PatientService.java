@@ -14,5 +14,5 @@ public interface PatientService {
     PatientResponse addPatient(PatientRequest patient)  throws ConflictException, InvalidRequestException;
     Map<String, List<PatientResponse>> getPatients() throws ResourceNotFoundException;
     PatientResponse getPatient(Long patientId) throws ResourceNotFoundException;
-    List<PatientResponse> getPatientsByIds(List<String> patientIds);
+    List<PatientResponse> getPatientsByIds(List<Long> patientIds);
 }

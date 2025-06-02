@@ -56,7 +56,7 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public List<PatientResponse> getPatientsByIds(List<String> patientIds) {
+    public List<PatientResponse> getPatientsByIds(List<Long> patientIds) {
         try {
             // String ID'leri Long'a çevir
             List<Long> ids = patientIds.stream()

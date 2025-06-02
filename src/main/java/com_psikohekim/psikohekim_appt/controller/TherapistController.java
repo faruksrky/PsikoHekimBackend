@@ -46,37 +46,6 @@ public class TherapistController {
         return therapistService.getPyschologistAreas();
     }
 
-    @PostMapping("/assign-therapist")
-    public ResponseEntity<?> assignTherapistToPatient(@RequestBody Map<String, Object> request) {
-        try {
-            // Service katmanına isteği iletiyoruz, tüm validasyonlar orada yapılacak
-            Map<String, Object> response = therapistService.acceptAssignmentRequest((Long) request.get("requestId"));
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            // Genel hata
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("İstek işlenirken bir hata oluştu: " + e.getMessage());
-        }
-    }
-
-    @PostMapping("/send-assignment-request")
-    public ResponseEntity<?> sendAssignmentRequest(@RequestBody Map<String, Object> request) {
-        try {
-            // Service katmanına isteği iletiyoruz, tüm validasyonlar orada yapılacak
-            Map<String, Object> response = therapistService.sendAssignmentRequest(request);
-            return ResponseEntity.ok(response);
-        } catch (ResourceNotFoundException e) {
-            // Kaynak bulunamadı hatası
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            // Genel hata
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("İstek işlenirken bir hata oluştu: " + e.getMessage());
-        }
-    }
 
     @GetMapping("/by-email")
     public ResponseEntity<Long> getTherapistIdByEmail(@RequestParam String email) {
