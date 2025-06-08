@@ -6,9 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -18,6 +16,7 @@ public class Therapist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long therapistId;
+    
     @Column(nullable = false)
     private String therapistFirstName;
     private String therapistLastName;
@@ -28,13 +27,8 @@ public class Therapist {
     @Enumerated(EnumType.STRING)
     private TherapistType therapistType;
 
-    @ManyToMany
-    @JoinTable(
-            name = "therapist_patient",
-            joinColumns = @JoinColumn(name = "therapist_id"),
-            inverseJoinColumns = @JoinColumn(name = "patient_id")
-    )
-    private Set<Patient> patients = new HashSet<>();
+    // Hasta ilişkisi TherapistPatient entity'si üzerinden yönetiliyor
+    // @ManyToMany gereksiz - TherapistPatient entity'si kullanılıyor
 
     @ElementCollection
     @Enumerated(EnumType.STRING)
@@ -43,14 +37,17 @@ public class Therapist {
     @Enumerated(EnumType.STRING)
     private Experience therapistYearsOfExperience;
 
-    @OneToMany(mappedBy = "therapist")
+    @OneToMany(mappedBy = "therapist", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CalendarEvent> events;
 
+    // Eğitim ve sertifika bilgileri
     private String therapistEducation;
     private String therapistUniversity;
     private String therapistCertifications;
+    
+    // Finansal bilgiler
     private BigDecimal therapistAppointmentFee;
+    
     @Column(name = "therapistRating", nullable = false, columnDefinition = "integer default 30")
     private int therapistRating = 30;
-
 }
