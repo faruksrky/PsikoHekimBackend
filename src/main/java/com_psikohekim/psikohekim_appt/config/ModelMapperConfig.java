@@ -33,15 +33,6 @@ public class ModelMapperConfig {
         modelMapper.addConverter((Converter<Patient, PatientResponse>) context -> {
             Patient source = context.getSource();
             PatientResponse destination = context.getDestination();
-
-            // Eğer therapists null veya boşsa atla
-            if (source.getTherapists() != null && !source.getTherapists().isEmpty()) {
-                List<TherapistResponse> therapistResponses = source.getTherapists().stream()
-                        .map(therapist -> modelMapper.map(therapist, TherapistResponse.class))
-                        .toList();
-                destination.setTherapist(therapistResponses);
-            }
-
             return destination;
         });
 

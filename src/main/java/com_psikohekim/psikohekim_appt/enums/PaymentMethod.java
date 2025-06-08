@@ -3,9 +3,7 @@ package com_psikohekim.psikohekim_appt.enums;
 public enum PaymentMethod {
     CASH("Nakit"),
     CREDIT_CARD("Kredi Kartı"),
-    BANK_TRANSFER("Banka Havalesi"),
-    ONLINE("Online Ödeme"),
-    CHECK("Çek");
+    BANK_TRANSFER("Banka Havalesi");
     
     private final String displayName;
     

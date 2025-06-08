@@ -8,7 +8,7 @@ import java.util.Optional;
 
 
 public interface TherapistAssignmentRepository extends JpaRepository<TherapistAssignment, Long> {
-    List<TherapistAssignment> findAllByTherapistIdAndStatus(String therapistId, TherapistAssignment.AssignmentStatus status);
+    List<TherapistAssignment> findAllByTherapistId(String therapistId);
     Optional<TherapistAssignment> findByProcessInstanceKey (String processInstanceKey);
     boolean existsByTherapistIdAndStatus(String therapistId, TherapistAssignment.AssignmentStatus status);
 }

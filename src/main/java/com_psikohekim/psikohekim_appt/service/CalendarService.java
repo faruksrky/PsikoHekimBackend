@@ -15,6 +15,7 @@ import com_psikohekim.psikohekim_appt.repository.CalendarRepository;
 import com_psikohekim.psikohekim_appt.repository.TherapistRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -32,8 +34,10 @@ public class CalendarService {
     private final TherapistRepository therapistRepository;
 
     public CalendarEventsResponse getEvents(Long therapistId, LocalDateTime start, LocalDateTime end) {
+        log.info("Therapist {} için etkinlikler getiriliyor, tarih aralığı: {} - {}", therapistId, start, end);
+
         Therapist therapist = therapistRepository.findById(therapistId)
-                .orElseThrow(() -> new ResourceNotFoundException("Therapist not found: " + therapistId));
+                .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı: " + therapistId));
 
         List<CalendarEvent> events;
         if (start != null && end != null) {
@@ -43,10 +47,14 @@ public class CalendarService {
         }
 
         Map<String, Long> stats = getEventStatistics(therapist);
+        log.info("{} adet etkinlik bulundu", events.size());
+
         return new CalendarEventsResponse(calendarMapper.toResponseList(events), events.size(), stats);
     }
 
     public CalendarEventResponse createEvent(CreateCalendarEventRequest request, Long therapistId) {
+        log.info("Yeni etkinlik oluşturuluyor: {} - therapistId: {}", request.getTitle(), therapistId);
+
         validateEventTimes(request.getStartTime(), request.getEndTime());
 
         if (hasTimeConflict(therapistId, request.getStartTime(), request.getEndTime())) {
@@ -58,15 +66,20 @@ public class CalendarService {
         event.setSource("MANUAL");
         event.setStatus("CONFIRMED");
 
-        return CalendarEventResponse.fromEntity(eventRepository.save(event));
+        CalendarEvent savedEvent = eventRepository.save(event);
+        log.info("Etkinlik başarıyla oluşturuldu: {}", savedEvent.getId());
+
+        return CalendarEventResponse.fromEntity(savedEvent);
     }
 
     public CalendarEventResponse updateEvent(Long eventId, UpdateCalendarEventRequest request, Long therapistId) {
+        log.info("Etkinlik güncelleniyor: {} - therapistId: {}", eventId, therapistId);
+
         Therapist therapist = therapistRepository.findById(therapistId)
-                .orElseThrow(() -> new ResourceNotFoundException("Therapist not found: " + therapistId));
+                .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı: " + therapistId));
 
         CalendarEvent existingEvent = eventRepository.findByIdAndTherapist(eventId, therapist)
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
+                .orElseThrow(() -> new ResourceNotFoundException("Etkinlik bulunamadı: " + eventId));
 
         if (request.getStartTime() != null && request.getEndTime() != null) {
             validateEventTimes(request.getStartTime(), request.getEndTime());
@@ -80,7 +93,10 @@ public class CalendarService {
         }
 
         calendarMapper.updateEntityFromRequest(existingEvent, request);
-        return CalendarEventResponse.fromEntity(eventRepository.save(existingEvent));
+        CalendarEvent updatedEvent = eventRepository.save(existingEvent);
+        log.info("Etkinlik başarıyla güncellendi: {}", eventId);
+
+        return CalendarEventResponse.fromEntity(updatedEvent);
     }
 
     private boolean existsByTherapistAndStartTimeLessThanAndEndTimeGreaterThan(
@@ -92,13 +108,16 @@ public class CalendarService {
     }
 
     public void deleteEvent(Long eventId, Long therapistId) {
+        log.info("Etkinlik siliniyor: {} - therapistId: {}", eventId, therapistId);
+
         Therapist therapist = therapistRepository.findById(therapistId)
-                .orElseThrow(() -> new ResourceNotFoundException("Therapist not found: " + therapistId));
+                .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı: " + therapistId));
 
         CalendarEvent event = eventRepository.findByIdAndTherapist(eventId, therapist)
-                .orElseThrow(() -> new ResourceNotFoundException("Event not found: " + eventId));
+                .orElseThrow(() -> new ResourceNotFoundException("Etkinlik bulunamadı: " + eventId));
 
         eventRepository.delete(event);
+        log.info("Etkinlik başarıyla silindi: {}", eventId);
     }
 
     private Map<String, Long> getEventStatistics(Therapist therapist) {
@@ -115,37 +134,52 @@ public class CalendarService {
     }
 
     public CalendarSyncResponse syncEvents(List<CalendarEvent> events) {
+        log.info("Takvim senkronizasyonu başlıyor: {} adet etkinlik", events.size());
+
         try {
             int addedCount = 0;
             int updatedCount = 0;
+            int skipCount = 0;
             List<CalendarEvent> syncedEvents = new ArrayList<>();
 
             for (CalendarEvent event : events) {
-                // Mevcut etkinliği bul veya yeni oluştur
-                CalendarEvent existingEvent = eventRepository
-                        .findByExternalIdAndSource(event.getExternalId(), event.getSource())
-                        .orElse(null);
+                try {
+                    // Mevcut etkinliği bul veya yeni oluştur
+                    CalendarEvent existingEvent = eventRepository
+                            .findByExternalIdAndSource(event.getExternalId(), event.getSource())
+                            .orElse(null);
 
-                if (existingEvent != null) {
-                    // Güncelleme
-                    updateExistingEvent(existingEvent, event);
-                    syncedEvents.add(eventRepository.save(existingEvent));
-                    updatedCount++;
-                } else {
-                    // Yeni ekle
-                    syncedEvents.add(eventRepository.save(event));
-                    addedCount++;
+                    if (existingEvent != null) {
+                        // Güncelleme
+                        updateExistingEvent(existingEvent, event);
+                        syncedEvents.add(eventRepository.save(existingEvent));
+                        updatedCount++;
+                        log.debug("Etkinlik güncellendi: {}", event.getExternalId());
+                    } else {
+                        // Yeni ekle
+                        CalendarEvent savedEvent = eventRepository.save(event);
+                        syncedEvents.add(savedEvent);
+                        addedCount++;
+                        log.debug("Yeni etkinlik eklendi: {}", event.getExternalId());
+                    }
+                } catch (Exception e) {
+                    log.warn("Etkinlik senkronize edilemedi: {} - Hata: {}",
+                            event.getExternalId(), e.getMessage());
+                    skipCount++;
                 }
             }
+
+            log.info("Senkronizasyon tamamlandı: {} eklendi, {} güncellendi, {} atlandı",
+                    addedCount, updatedCount, skipCount);
 
             return buildSuccessResponse(syncedEvents, addedCount, updatedCount);
 
         } catch (Exception e) {
+            log.error("Takvim senkronizasyonu başarısız: ", e);
             return buildErrorResponse(e.getMessage());
         }
     }
 
-    // Yardımcı metodlar
     private void updateExistingEvent(CalendarEvent existingEvent, CalendarEvent newEvent) {
         existingEvent.setTitle(newEvent.getTitle());
         existingEvent.setDescription(newEvent.getDescription());
@@ -153,6 +187,7 @@ public class CalendarService {
         existingEvent.setEndTime(newEvent.getEndTime());
         existingEvent.setLocation(newEvent.getLocation());
         existingEvent.setStatus(newEvent.getStatus());
+        existingEvent.setUpdatedAt(LocalDateTime.now());
     }
 
     private CalendarSyncResponse buildSuccessResponse(List<CalendarEvent> syncedEvents,
@@ -166,6 +201,7 @@ public class CalendarService {
 
         return CalendarSyncResponse.builder()
                 .success(true)
+                .message("Takvim senkronizasyonu başarıyla tamamlandı")
                 .events(calendarMapper.toResponseList(syncedEvents))
                 .statistics(statistics)
                 .syncStatus(SyncStatus.COMPLETED)
@@ -173,18 +209,18 @@ public class CalendarService {
     }
 
     public CalendarSyncResponse buildErrorResponse(String errorMessage) {
+        log.error("Senkronizasyon hatası: {}", errorMessage);
+
         return CalendarSyncResponse.builder()
                 .success(false)
                 .error("Takvim senkronizasyonu başarısız: " + errorMessage)
+                .message("Senkronizasyon sırasında bir hata oluştu")
                 .syncStatus(SyncStatus.FAILED)
                 .build();
     }
 
-    // CalendarService'de debug için
     private void validateEventTimes(LocalDateTime start, LocalDateTime end) {
         LocalDateTime now = LocalDateTime.now();
-        System.out.println("Server time: " + now);
-        System.out.println("Event start time: " + start);
 
         if (start.isAfter(end)) {
             throw new CustomExceptionHandler.InvalidEventTimeException(
@@ -192,19 +228,18 @@ public class CalendarService {
             );
         }
 
-        if (start.isBefore(now)) {
+        if (start.isBefore(now.minusMinutes(5))) { // 5 dakika tolerans
             throw new CustomExceptionHandler.InvalidEventTimeException(
-                    "Geçmiş bir zamana etkinlik eklenemez (" + start + " < " + now + ")"
+                    "Geçmiş bir zamana etkinlik eklenemez"
             );
         }
     }
 
     private boolean hasTimeConflict(Long therapistId, LocalDateTime start, LocalDateTime end) {
         Therapist therapist = therapistRepository.findById(therapistId)
-                .orElseThrow(() -> new ResourceNotFoundException("Therapist not found: " + therapistId));
+                .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı: " + therapistId));
 
         return eventRepository.existsByTherapistAndStartTimeLessThanAndEndTimeGreaterThan(
                 therapist, end, start);
     }
-
 }

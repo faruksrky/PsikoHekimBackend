@@ -69,7 +69,7 @@ public class PatientServiceImpl implements PatientService {
             // Patient entity'lerini PatientResponse DTO'larına dönüştür
             return patients.stream()
                     .map(patient -> PatientResponse.builder()
-                            .patientId(patient.getPatientID())
+                            .patientId(patient.getPatientId())
                             .patientFirstName(patient.getPatientFirstName())
                             .patientLastName(patient.getPatientLastName())
                             .patientAge(patient.getPatientAge())

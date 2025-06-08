@@ -1,6 +1,5 @@
 package com_psikohekim.psikohekim_appt.controller;
 
-import com_psikohekim.psikohekim_appt.dto.request.AssignTherapistRequest;
 import com_psikohekim.psikohekim_appt.dto.request.TherapistRequest;
 import com_psikohekim.psikohekim_appt.dto.request.SessionCompletionRequest;
 import com_psikohekim.psikohekim_appt.dto.response.PatientResponse;
@@ -15,6 +14,7 @@ import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
 import com_psikohekim.psikohekim_appt.model.Therapist;
 import com_psikohekim.psikohekim_appt.service.PatientService;
 import com_psikohekim.psikohekim_appt.service.TherapistService;
+import com_psikohekim.psikohekim_appt.service.TherapistPatientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,6 +34,7 @@ public class TherapistController {
 
     private final TherapistService therapistService;
     private final PatientService patientService;
+    private final TherapistPatientService therapistPatientService;
 
     @PostMapping("/addTherapist")
     public TherapistResponse addTherapist(@RequestBody TherapistRequest therapist) throws ConflictException, InvalidRequestException {
@@ -61,9 +62,9 @@ public class TherapistController {
         Therapist therapist = therapistService.findByEmail(email);
         return ResponseEntity.ok(therapist.getTherapistId());
     }
-    
+
     // ========== YENİ DASHBOARD ENDPOINTS ==========
-    
+
     /**
      * Terapist dashboard bilgilerini getirir
      */
@@ -72,21 +73,21 @@ public class TherapistController {
             @PathVariable Long therapistId) {
         try {
             log.info("Terapist {} dashboard bilgileri isteniyor", therapistId);
-            
+
             TherapistDashboardResponse dashboard = therapistService.getTherapistDashboard(therapistId);
-            
+
             return ResponseEntity.ok(ApiResponse.success(dashboard, "Dashboard bilgileri getirildi"));
-            
+
         } catch (ResourceNotFoundException e) {
             log.error("Terapist bulunamadı: {}", therapistId, e);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Dashboard getirme hatası: ", e);
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error(e.getMessage(), "Dashboard bilgileri getirilemedi"));
+                    .body(ApiResponse.error(e.getMessage(), "Dashboard bilgileri getirilemedi"));
         }
     }
-    
+
     /**
      * Terapist hastalarını listeler
      */
@@ -97,21 +98,21 @@ public class TherapistController {
             @RequestParam(defaultValue = "10") int size) {
         try {
             log.info("Terapist {} hastaları isteniyor (sayfa: {}, boyut: {})", therapistId, page, size);
-            
-            List<PatientSummaryDto> patients = therapistService.getTherapistPatients(therapistId, page, size);
-            
+
+            List<PatientSummaryDto> patients = therapistPatientService.getTherapistPatients(therapistId, page, size);
+
             return ResponseEntity.ok(ApiResponse.success(patients, "Hasta listesi getirildi"));
-            
+
         } catch (ResourceNotFoundException e) {
             log.error("Terapist bulunamadı: {}", therapistId, e);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Hasta listesi getirme hatası: ", e);
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error(e.getMessage(), "Hasta listesi getirilemedi"));
+                    .body(ApiResponse.error(e.getMessage(), "Hasta listesi getirilemedi"));
         }
     }
-    
+
     /**
      * Terapist istatistiklerini getirir
      */
@@ -121,21 +122,21 @@ public class TherapistController {
             @RequestParam(defaultValue = "WEEKLY") String period) {
         try {
             log.info("Terapist {} istatistikleri isteniyor (dönem: {})", therapistId, period);
-            
+
             TherapistStatistics statistics = therapistService.getTherapistStatistics(therapistId, period);
-            
+
             return ResponseEntity.ok(ApiResponse.success(statistics, "İstatistikler getirildi"));
-            
+
         } catch (ResourceNotFoundException e) {
             log.error("Terapist bulunamadı: {}", therapistId, e);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("İstatistik getirme hatası: ", e);
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error(e.getMessage(), "İstatistikler getirilemedi"));
+                    .body(ApiResponse.error(e.getMessage(), "İstatistikler getirilemedi"));
         }
     }
-    
+
     /**
      * Seansı tamamlar
      */
@@ -146,21 +147,21 @@ public class TherapistController {
             @Valid @RequestBody SessionCompletionRequest request) {
         try {
             log.info("Terapist {} randevu {} tamamlanıyor", therapistId, appointmentId);
-            
-            therapistService.completeSession(therapistId, appointmentId, request);
-            
+
+            therapistPatientService.completeSession(therapistId, appointmentId, request);
+
             return ResponseEntity.ok(ApiResponse.success("Seans tamamlandı", "Seans başarıyla tamamlandı"));
-            
+
         } catch (ResourceNotFoundException e) {
             log.error("Randevu bulunamadı: {}", appointmentId, e);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Seans tamamlama hatası: ", e);
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error(e.getMessage(), "Seans tamamlanamadı"));
+                    .body(ApiResponse.error(e.getMessage(), "Seans tamamlanamadı"));
         }
     }
-    
+
     /**
      * Hasta özetini getirir
      */
@@ -170,18 +171,18 @@ public class TherapistController {
             @PathVariable Long patientId) {
         try {
             log.info("Terapist {} hasta {} özeti isteniyor", therapistId, patientId);
-            
-            PatientSummaryDto patient = therapistService.getPatientSummary(therapistId, patientId);
-            
+
+            PatientSummaryDto patient = therapistPatientService.getPatientSummary(therapistId, patientId);
+
             return ResponseEntity.ok(ApiResponse.success(patient, "Hasta özeti getirildi"));
-            
+
         } catch (ResourceNotFoundException e) {
             log.error("Hasta ataması bulunamadı: therapistId={}, patientId={}", therapistId, patientId, e);
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Hasta özeti getirme hatası: ", e);
             return ResponseEntity.badRequest()
-                .body(ApiResponse.error(e.getMessage(), "Hasta özeti getirilemedi"));
+                    .body(ApiResponse.error(e.getMessage(), "Hasta özeti getirilemedi"));
         }
     }
 }

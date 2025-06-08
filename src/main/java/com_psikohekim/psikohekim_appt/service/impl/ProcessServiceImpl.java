@@ -128,9 +128,8 @@ public class ProcessServiceImpl implements ProcessService {
         }
 
         List<TherapistAssignment> requests = therapistAssignmentRepository
-                .findAllByTherapistIdAndStatus(
-                        String.valueOf(therapistId),
-                        TherapistAssignment.AssignmentStatus.PENDING
+                .findAllByTherapistId(
+                        String.valueOf(therapistId)
                 );
 
         if (requests.isEmpty()) {

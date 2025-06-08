@@ -12,18 +12,18 @@ import java.util.List;
 public class Patient {
     @Id
     @GeneratedValue (strategy = GenerationType.IDENTITY)
-    private Long patientID;
-    
+    private Long patientId;
+
     @Column (nullable = false)
     private String patientFirstName;
-    
+
     @Column (nullable = false)
     private String patientLastName;
-    
+
     private String patientGender;
     private Integer patientAge;
     private String patientEmail;
-    
+
     @Column (nullable = false)
     private String patientPhoneNumber;
 
@@ -31,14 +31,14 @@ public class Patient {
     private String patientCountry;
     private String patientCity;
     private String patientAddress;
-    
+
     // Ödeme ilişkisi
     @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Payment> payments;
-    
+
     // Referans bilgisi
     private String patientReference;
-    
+
     // Terapist ilişkisi TherapistPatient entity'si üzerinden yönetiliyor
     // @ManyToMany gereksiz - TherapistPatient entity'si kullanılıyor
 }

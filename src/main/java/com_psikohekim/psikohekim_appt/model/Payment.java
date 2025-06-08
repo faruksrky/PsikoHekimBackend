@@ -14,8 +14,8 @@ import java.util.List;
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "PaymentID")
     private Long paymentId;
+
     private LocalDateTime paymentDate;
     private BigDecimal amountPatient;
     private BigDecimal amountDoctor;
@@ -23,7 +23,7 @@ public class Payment {
     private String paymentStatus;
     private String description;
     @ManyToOne
-    @JoinColumn(name = "patientId", nullable = false)
+    @JoinColumn(name = "patient_Id", nullable = false)
     private Patient patient; // Reference to the patient
 }
 

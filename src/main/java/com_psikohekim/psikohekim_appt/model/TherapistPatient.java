@@ -1,11 +1,14 @@
 package com_psikohekim.psikohekim_appt.model;
 
 import com_psikohekim.psikohekim_appt.enums.AssignmentStatus;
+import com_psikohekim.psikohekim_appt.enums.SessionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "therapist_patient")
@@ -52,25 +55,13 @@ public class TherapistPatient {
     @Column(name = "progress_notes", length = 2000)
     private String progressNotes;
 
-    // Seans istatistikleri
+    // Normalized Session Relationship
+    @OneToMany(mappedBy = "assignment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TherapySession> sessions = new ArrayList<>();
+
+    // Session sayıları artık bu field'dan hesaplanacak
     @Column(name = "total_sessions_planned")
     private Integer totalSessionsPlanned = 0;
-
-    @Column(name = "sessions_completed")
-    private Integer sessionsCompleted = 0;
-
-    @Column(name = "sessions_cancelled")
-    private Integer sessionsCancelled = 0;
-
-    @Column(name = "sessions_no_show")
-    private Integer sessionsNoShow = 0;
-
-    // Finansal bilgiler
-    @Column(name = "outstanding_balance", precision = 10, scale = 2)
-    private BigDecimal outstandingBalance = BigDecimal.ZERO;
-
-    @Column(name = "total_amount_paid", precision = 10, scale = 2)
-    private BigDecimal totalAmountPaid = BigDecimal.ZERO;
 
     // Öncelik ve durum
     @Column(name = "priority_level")
@@ -79,12 +70,7 @@ public class TherapistPatient {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
-    // Son aktivite
-    @Column(name = "last_session_date")
-    private LocalDateTime lastSessionDate;
-
-    @Column(name = "next_appointment_date")
-    private LocalDateTime nextAppointmentDate;
+    // Son aktivite - artık calculated metodlardan gelecek
 
     // Meta bilgiler
     @Column(name = "created_at")
@@ -111,21 +97,153 @@ public class TherapistPatient {
         updatedAt = LocalDateTime.now();
     }
 
-    // Helper metodlar
+    // ========== CALCULATED METHODS (Denormalized to Normalized) ==========
+
+    /**
+     * Tamamlanan session sayısını hesapla
+     */
+    public int getSessionsCompleted() {
+        if (sessions == null) return 0;
+        return (int) sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.COMPLETED)
+                .count();
+    }
+
+    /**
+     * İptal edilen session sayısını hesapla
+     */
+    public int getSessionsCancelled() {
+        if (sessions == null) return 0;
+        return (int) sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.CANCELLED)
+                .count();
+    }
+
+    /**
+     * No-show session sayısını hesapla
+     */
+    public int getSessionsNoShow() {
+        if (sessions == null) return 0;
+        return (int) sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.NO_SHOW)
+                .count();
+    }
+
+    /**
+     * Scheduled session sayısını hesapla
+     */
+    public int getSessionsScheduled() {
+        if (sessions == null) return 0;
+        return (int) sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.SCHEDULED)
+                .count();
+    }
+
+    /**
+     * Toplam session sayısını hesapla
+     */
+    public int getTotalSessionsActual() {
+        return sessions != null ? sessions.size() : 0;
+    }
+
+    /**
+     * Outstanding balance hesapla (ödenmemiş session ücreti)
+     */
+    public BigDecimal getOutstandingBalance() {
+        if (sessions == null) return BigDecimal.ZERO;
+        return sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.COMPLETED)
+                .filter(session -> !"PAID".equals(session.getPaymentStatus()))
+                .map(TherapySession::getSessionFee)
+                .filter(fee -> fee != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Toplam ödenen tutarı hesapla
+     */
+    public BigDecimal getTotalAmountPaid() {
+        if (sessions == null) return BigDecimal.ZERO;
+        return sessions.stream()
+                .filter(session -> "PAID".equals(session.getPaymentStatus()))
+                .map(TherapySession::getSessionFee)
+                .filter(fee -> fee != null)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    /**
+     * Completion rate hesapla (tamamlanan / planlanan)
+     */
     public double getCompletionRate() {
         if (totalSessionsPlanned == null || totalSessionsPlanned == 0) {
             return 0.0;
         }
-        return (double) (sessionsCompleted != null ? sessionsCompleted : 0) / totalSessionsPlanned * 100;
+        return (double) getSessionsCompleted() / totalSessionsPlanned * 100;
     }
 
+    /**
+     * Attendance rate hesapla (gelen / toplam scheduled)
+     */
     public double getAttendanceRate() {
-        int totalScheduled = (sessionsCompleted != null ? sessionsCompleted : 0) + 
-                           (sessionsCancelled != null ? sessionsCancelled : 0) + 
-                           (sessionsNoShow != null ? sessionsNoShow : 0);
+        int totalScheduled = getSessionsCompleted() + getSessionsCancelled() + getSessionsNoShow();
         if (totalScheduled == 0) {
             return 0.0;
         }
-        return (double) (sessionsCompleted != null ? sessionsCompleted : 0) / totalScheduled * 100;
+        return (double) getSessionsCompleted() / totalScheduled * 100;
+    }
+
+    /**
+     * Son session tarihini hesapla
+     */
+    public LocalDateTime getLastSessionDate() {
+        if (sessions == null || sessions.isEmpty()) return null;
+        return sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.COMPLETED)
+                .map(TherapySession::getScheduledDate)
+                .max(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    /**
+     * Bir sonraki appointment tarihini hesapla
+     */
+    public LocalDateTime getNextAppointmentDate() {
+        if (sessions == null || sessions.isEmpty()) return null;
+        return sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.SCHEDULED)
+                .filter(session -> session.getScheduledDate().isAfter(LocalDateTime.now()))
+                .map(TherapySession::getScheduledDate)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    /**
+     * Aktif mi kontrol et
+     */
+    public boolean isActiveAssignment() {
+        return assignmentStatus == AssignmentStatus.ACTIVE &&
+                Boolean.TRUE.equals(isActive);
+    }
+
+    /**
+     * Tamamlanan session'lar listesi
+     */
+    public List<TherapySession> getCompletedSessions() {
+        if (sessions == null) return new ArrayList<>();
+        return sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.COMPLETED)
+                .sorted((s1, s2) -> s2.getScheduledDate().compareTo(s1.getScheduledDate()))
+                .toList();
+    }
+
+    /**
+     * Scheduled session'lar listesi
+     */
+    public List<TherapySession> getScheduledSessions() {
+        if (sessions == null) return new ArrayList<>();
+        return sessions.stream()
+                .filter(session -> session.getStatus() == SessionStatus.SCHEDULED)
+                .sorted((s1, s2) -> s1.getScheduledDate().compareTo(s2.getScheduledDate()))
+                .toList();
     }
 }
