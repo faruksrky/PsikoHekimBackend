@@ -37,6 +37,8 @@ public class WebConfig {
                                         "/public/**",
                                         "/therapist/**",
                                         "/patient/**",
+                                        "/therapist-patient/**",
+                                        "/therapy-session/**",
                                         "/api/users/**",
                                         "/process/send-assignment-request",
                                         "/process/**"

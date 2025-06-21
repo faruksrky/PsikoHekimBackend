@@ -24,10 +24,9 @@ import java.util.Map;
  * Comprehensive session management endpoints
  */
 @RestController
-@RequestMapping("/api/therapy-sessions")
+@RequestMapping("/therapy-sessions")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class TherapySessionController {
 
     private final TherapySessionService sessionService;
@@ -38,16 +37,42 @@ public class TherapySessionController {
      * Yeni session oluştur
      * POST /api/therapy-sessions
      */
-    @PostMapping
-    public ResponseEntity<SessionResponse> createSession(@RequestBody SessionScheduleRequest request) {
+    @PostMapping("/addSession")
+    public ResponseEntity<?> createSession(@RequestBody SessionScheduleRequest request) {
         try {
+            log.info("Creating new session with request: {}", request);
+
+            // Validation
+            if (!request.isValid()) {
+                log.error("Invalid session request: assignmentId={}, scheduledDate={}",
+                        request.getAssignmentId(), request.getScheduledDate());
+                return ResponseEntity.badRequest()
+                        .body("Invalid session request: " +
+                                (request.getAssignmentId() == null ? "assignmentId is required, " : "") +
+                                (request.getScheduledDate() == null ? "scheduledDate is required, " : "") +
+                                (request.getScheduledDate() != null && !request.getScheduledDate().isAfter(LocalDateTime.now()) ?
+                                        "scheduledDate must be in the future" : ""));
+            }
+
             SessionResponse response = sessionService.createSession(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid session request: {}", e.getMessage());
-            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error("Error creating session: {}", e.getMessage());
+            log.error("Error creating session: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body("Error creating session: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Tüm session'ları getir (Genel liste için)
+     * GET /api/therapy-sessions
+     */
+    @GetMapping
+    public ResponseEntity<List<SessionResponse>> getAllSessions() {
+        try {
+            List<SessionResponse> sessions = sessionService.getAllSessions();
+            return ResponseEntity.ok(sessions);
+        } catch (Exception e) {
+            log.error("Error fetching all sessions: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

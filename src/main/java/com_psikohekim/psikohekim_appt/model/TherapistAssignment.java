@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class TherapistAssignment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long assignmentId;
     private String patientId;
     private String therapistId;
     private String processInstanceKey;

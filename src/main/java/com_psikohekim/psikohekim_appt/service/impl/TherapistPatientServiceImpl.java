@@ -70,7 +70,7 @@ public class TherapistPatientServiceImpl implements TherapistPatientService {
         TherapistPatient savedAssignment = therapistPatientRepository.save(assignment);
 
         log.info("BPMN assignment başarıyla işlendi: Process={}, AssignmentId={}",
-                bpmnRequest.getProcessId(), savedAssignment.getId());
+                bpmnRequest.getProcessId(), savedAssignment.getTherapistPatientId());
 
         // Basit success response döndür
         return new AssignResponse(true, "Therapist onayı ile assignment başarıyla oluşturuldu");

@@ -171,12 +171,35 @@ public class TherapistServiceImpl implements TherapistService {
 
 
     private void configureModelMapper() {
+        // Request -> Entity mapping
         modelMapper.typeMap(TherapistRequest.class, Therapist.class)
                 .addMappings(mapper -> {
                     mapper.using(ctx -> {
                         String value = (String) ctx.getSource();
-                        return value != null ? Experience.fromString(value) : null;
+                        if (value == null || value.trim().isEmpty()) {
+                            return null;
+                        }
+                        try {
+                            return Experience.fromString(value);
+                        } catch (IllegalArgumentException e) {
+                            log.warn("Invalid Experience value: {}, using default TWO_TO_FIVE", value);
+                            return Experience.TWO_TO_FIVE; // Default value
+                        }
                     }).map(TherapistRequest::getTherapistYearsOfExperience, Therapist::setTherapistYearsOfExperience);
+                });
+
+        // Entity -> Response mapping
+        modelMapper.typeMap(Therapist.class, TherapistResponse.class)
+                .addMappings(mapper -> {
+                    mapper.using(ctx -> {
+                        Experience experience = (Experience) ctx.getSource();
+                        try {
+                            return experience != null ? experience.getValue() : null;
+                        } catch (Exception e) {
+                            log.warn("Error converting Experience to String: {}", e.getMessage());
+                            return "2-5 Y"; // Default value
+                        }
+                    }).map(Therapist::getTherapistYearsOfExperience, TherapistResponse::setTherapistYearsOfExperience);
                 });
     }
 

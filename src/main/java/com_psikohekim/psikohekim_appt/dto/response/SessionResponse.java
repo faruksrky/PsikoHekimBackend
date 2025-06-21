@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 public class SessionResponse {
 
-    private Long id;
+    private Long sessionId;
     private Long assignmentId;
     private Long therapistId;
     private Long patientId;

@@ -21,14 +21,19 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
     // ========== BASIC QUERIES ==========
 
     /**
+     * Tüm session'ları tarihe göre sıralayarak getir
+     */
+    List<TherapySession> findAllByOrderByScheduledDateDesc();
+
+    /**
      * Assignment'a göre tüm session'ları getir
      */
-    List<TherapySession> findByAssignmentIdOrderByScheduledDateDesc(Long assignmentId);
+    List<TherapySession> findByAssignment_TherapistPatientIdOrderByScheduledDateDesc(Long assignmentId);
 
     /**
      * Assignment'a göre sayfalanmış session'ları getir
      */
-    Page<TherapySession> findByAssignmentIdOrderByScheduledDateDesc(Long assignmentId, Pageable pageable);
+    Page<TherapySession> findByAssignment_TherapistPatientIdOrderByScheduledDateDesc(Long assignmentId, Pageable pageable);
 
     /**
      * Therapist'in tüm session'ları
@@ -45,7 +50,7 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
     /**
      * Assignment'a göre belirli status'taki session'lar
      */
-    List<TherapySession> findByAssignmentIdAndStatus(Long assignmentId, SessionStatus status);
+    List<TherapySession> findByAssignment_TherapistPatientIdAndStatus(Long assignmentId, SessionStatus status);
 
     /**
      * Therapist'in belirli status'taki session'ları
@@ -85,7 +90,7 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
     /**
      * Tarih aralığındaki session'lar
      */
-    @Query("SELECT ts FROM TherapySession ts WHERE ts.assignment.id = :assignmentId " +
+    @Query("SELECT ts FROM TherapySession ts WHERE ts.assignment.therapistPatientId = :assignmentId " +
             "AND ts.scheduledDate >= :startDate AND ts.scheduledDate <= :endDate " +
             "ORDER BY ts.scheduledDate")
     List<TherapySession> findSessionsBetweenDates(@Param("assignmentId") Long assignmentId,
@@ -97,13 +102,13 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
     /**
      * Assignment'ın tamamlanan session sayısı
      */
-    @Query("SELECT COUNT(ts) FROM TherapySession ts WHERE ts.assignment.id = :assignmentId AND ts.status = 'COMPLETED'")
+    @Query("SELECT COUNT(ts) FROM TherapySession ts WHERE ts.assignment.therapistPatientId = :assignmentId AND ts.status = 'COMPLETED'")
     int countCompletedSessionsByAssignment(@Param("assignmentId") Long assignmentId);
 
     /**
      * Assignment'ın iptal edilen session sayısı
      */
-    @Query("SELECT COUNT(ts) FROM TherapySession ts WHERE ts.assignment.id = :assignmentId " +
+    @Query("SELECT COUNT(ts) FROM TherapySession ts WHERE ts.assignment.therapistPatientId = :assignmentId " +
             "AND ts.status IN ('CANCELLED', 'NO_SHOW')")
     int countCancelledSessionsByAssignment(@Param("assignmentId") Long assignmentId);
 
@@ -138,13 +143,13 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
     /**
      * Son session'ı bul
      */
-    Optional<TherapySession> findFirstByAssignmentIdAndStatusOrderByScheduledDateDesc(
+    Optional<TherapySession> findFirstByAssignment_TherapistPatientIdAndStatusOrderByScheduledDateDesc(
             Long assignmentId, SessionStatus status);
 
     /**
      * Bir sonraki scheduled session
      */
-    @Query("SELECT ts FROM TherapySession ts WHERE ts.assignment.id = :assignmentId " +
+    @Query("SELECT ts FROM TherapySession ts WHERE ts.assignment.therapistPatientId = :assignmentId " +
             "AND ts.status = 'SCHEDULED' AND ts.scheduledDate > CURRENT_TIMESTAMP " +
             "ORDER BY ts.scheduledDate ASC")
     Optional<TherapySession> findNextScheduledSession(@Param("assignmentId") Long assignmentId);
@@ -163,7 +168,7 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
      * Assignment'ın toplam borcu
      */
     @Query("SELECT COALESCE(SUM(ts.sessionFee), 0) FROM TherapySession ts " +
-            "WHERE ts.assignment.id = :assignmentId AND ts.paymentStatus IN ('PENDING', 'PARTIAL')")
+            "WHERE ts.assignment.therapistPatientId = :assignmentId AND ts.paymentStatus IN ('PENDING', 'PARTIAL')")
     java.math.BigDecimal getTotalOutstandingBalance(@Param("assignmentId") Long assignmentId);
 
     // ========== DASHBOARD QUERIES ==========

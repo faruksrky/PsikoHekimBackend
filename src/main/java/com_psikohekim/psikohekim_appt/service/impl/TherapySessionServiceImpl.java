@@ -45,50 +45,39 @@ public class TherapySessionServiceImpl implements TherapySessionService {
 
     @Override
     public SessionResponse createSession(SessionScheduleRequest request) {
-        log.info("Creating new therapy session for assignment: {}", request.getAssignmentId());
-
-        // Validation
-        if (!request.isValid()) {
-            throw new IllegalArgumentException("Invalid session schedule request");
-        }
+        log.info("Creating new session for assignment: {}", request.getAssignmentId());
 
         // Assignment'ı kontrol et
         TherapistPatient assignment = assignmentRepository.findById(request.getAssignmentId())
                 .orElseThrow(() -> new RuntimeException("Assignment not found: " + request.getAssignmentId()));
 
-        if (!assignment.isActiveAssignment()) {
-            throw new RuntimeException("Cannot schedule session for inactive assignment");
-        }
-
-        // Aynı zamanda başka session var mı kontrol et
-        boolean conflictExists = sessionRepository.findByTherapistIdAndStatus(
-                        assignment.getTherapist().getTherapistId(), SessionStatus.SCHEDULED)
-                .stream()
-                .anyMatch(session -> isTimeConflict(session.getScheduledDate(), request.getScheduledDate()));
-
-        if (conflictExists) {
-            throw new RuntimeException("Time conflict with existing session");
-        }
-
-        // Yeni session oluştur
-        TherapySession session = TherapySession.builder()
-                .assignment(assignment)
-                .scheduledDate(request.getScheduledDate())
-                .sessionFee(request.getSessionFee())
-                .sessionType(request.getSessionType() != null ? request.getSessionType() : "REGULAR")
-                .sessionFormat(request.getSessionFormat() != null ? request.getSessionFormat() : "IN_PERSON")
-                .status(SessionStatus.SCHEDULED)
-                .createdBy("SYSTEM") // TODO: Get from security context
-                .build();
-
-        if (request.getNotes() != null) {
-            session.setSessionNotes(request.getNotes());
-        }
+        // Session oluştur
+        TherapySession session = new TherapySession();
+        session.setAssignment(assignment);
+        session.setTherapistId(assignment.getTherapist().getTherapistId());
+        session.setPatientId(assignment.getPatient().getPatientId());
+        session.setScheduledDate(request.getScheduledDate());
+        session.setSessionFee(request.getSessionFee());
+        session.setSessionType(request.getSessionType());
+        session.setSessionFormat(request.getSessionFormat());
+        session.setSessionNotes(request.getNotes());
+        session.setStatus(SessionStatus.SCHEDULED);
+        session.setPaymentStatus("PENDING");
+        session.setCreatedBy("SYSTEM");
+        session.setUpdatedBy("SYSTEM");
 
         TherapySession savedSession = sessionRepository.save(session);
-        log.info("Session created successfully with ID: {}", savedSession.getId());
+        log.info("Session created successfully: {}", savedSession.getTherapySessionId());
 
         return sessionMapper.toResponseDto(savedSession);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SessionResponse> getAllSessions() {
+        log.info("Fetching all therapy sessions");
+        List<TherapySession> sessions = sessionRepository.findAllByOrderByScheduledDateDesc();
+        return sessionMapper.toResponseDtoList(sessions);
     }
 
     @Override
@@ -213,7 +202,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         boolean conflictExists = sessionRepository.findByTherapistIdAndStatus(
                         session.getTherapistId(), SessionStatus.SCHEDULED)
                 .stream()
-                .filter(s -> !s.getId().equals(sessionId))
+                .filter(s -> !s.getTherapySessionId().equals(sessionId))
                 .anyMatch(s -> isTimeConflict(s.getScheduledDate(), newDate));
 
         if (conflictExists) {
@@ -280,14 +269,14 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionResponse> getSessionsByAssignment(Long assignmentId) {
-        List<TherapySession> sessions = sessionRepository.findByAssignmentIdOrderByScheduledDateDesc(assignmentId);
+        List<TherapySession> sessions = sessionRepository.findByAssignment_TherapistPatientIdOrderByScheduledDateDesc(assignmentId);
         return sessionMapper.toResponseDtoList(sessions);
     }
 
     @Override
     @Transactional(readOnly = true)
     public Page<SessionResponse> getSessionsByAssignment(Long assignmentId, Pageable pageable) {
-        Page<TherapySession> sessions = sessionRepository.findByAssignmentIdOrderByScheduledDateDesc(assignmentId, pageable);
+        Page<TherapySession> sessions = sessionRepository.findByAssignment_TherapistPatientIdOrderByScheduledDateDesc(assignmentId, pageable);
         return sessions.map(sessionMapper::toResponseDto);
     }
 
@@ -308,7 +297,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     @Override
     @Transactional(readOnly = true)
     public List<SessionResponse> getSessionsByStatus(Long assignmentId, SessionStatus status) {
-        List<TherapySession> sessions = sessionRepository.findByAssignmentIdAndStatus(assignmentId, status);
+        List<TherapySession> sessions = sessionRepository.findByAssignment_TherapistPatientIdAndStatus(assignmentId, status);
         return sessionMapper.toResponseDtoList(sessions);
     }
 
@@ -366,7 +355,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         int completed = sessionRepository.countCompletedSessionsByAssignment(assignmentId);
         int cancelled = sessionRepository.countCancelledSessionsByAssignment(assignmentId);
 
-        List<TherapySession> allSessions = sessionRepository.findByAssignmentIdOrderByScheduledDateDesc(assignmentId);
+        List<TherapySession> allSessions = sessionRepository.findByAssignment_TherapistPatientIdOrderByScheduledDateDesc(assignmentId);
         int total = allSessions.size();
         int scheduled = (int) allSessions.stream().filter(s -> s.getStatus() == SessionStatus.SCHEDULED).count();
         int noShow = (int) allSessions.stream().filter(s -> s.getStatus() == SessionStatus.NO_SHOW).count();
@@ -508,7 +497,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     @Override
     @Transactional(readOnly = true)
     public SessionResponse getLastCompletedSession(Long assignmentId) {
-        Optional<TherapySession> session = sessionRepository.findFirstByAssignmentIdAndStatusOrderByScheduledDateDesc(
+        Optional<TherapySession> session = sessionRepository.findFirstByAssignment_TherapistPatientIdAndStatusOrderByScheduledDateDesc(
                 assignmentId, SessionStatus.COMPLETED);
 
         return session.map(sessionMapper::toResponseDto).orElse(null);
@@ -524,7 +513,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     @Override
     @Transactional(readOnly = true)
     public int countSessionsByStatus(Long assignmentId, SessionStatus status) {
-        List<TherapySession> sessions = sessionRepository.findByAssignmentIdAndStatus(assignmentId, status);
+        List<TherapySession> sessions = sessionRepository.findByAssignment_TherapistPatientIdAndStatus(assignmentId, status);
         return sessions.size();
     }
 
@@ -583,7 +572,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     public void cancelAllScheduledSessions(Long assignmentId, String reason) {
         log.info("Cancelling all scheduled sessions for assignment: {}", assignmentId);
 
-        List<TherapySession> scheduledSessions = sessionRepository.findByAssignmentIdAndStatus(
+        List<TherapySession> scheduledSessions = sessionRepository.findByAssignment_TherapistPatientIdAndStatus(
                 assignmentId, SessionStatus.SCHEDULED);
 
         for (TherapySession session : scheduledSessions) {

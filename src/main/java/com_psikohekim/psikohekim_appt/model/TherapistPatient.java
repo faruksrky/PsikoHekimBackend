@@ -21,7 +21,7 @@ public class TherapistPatient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long therapistPatientId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "therapist_id", nullable = false)

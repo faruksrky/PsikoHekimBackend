@@ -2,7 +2,6 @@ package com_psikohekim.psikohekim_appt.controller;
 
 import com_psikohekim.psikohekim_appt.dto.request.TherapistRequest;
 import com_psikohekim.psikohekim_appt.dto.request.SessionCompletionRequest;
-import com_psikohekim.psikohekim_appt.dto.response.PatientResponse;
 import com_psikohekim.psikohekim_appt.dto.response.TherapistResponse;
 import com_psikohekim.psikohekim_appt.dto.response.ApiResponse;
 import com_psikohekim.psikohekim_appt.dto.response.TherapistDashboardResponse;
@@ -17,7 +16,6 @@ import com_psikohekim.psikohekim_appt.service.TherapistService;
 import com_psikohekim.psikohekim_appt.service.TherapistPatientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,13 +25,12 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/therapists")
+@RequestMapping("/therapist")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TherapistController {
 
     private final TherapistService therapistService;
-    private final PatientService patientService;
     private final TherapistPatientService therapistPatientService;
 
     @PostMapping("/addTherapist")

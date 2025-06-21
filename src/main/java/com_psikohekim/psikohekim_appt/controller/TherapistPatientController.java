@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/therapist-patient")
+@RequestMapping("/therapist-patient")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 public class TherapistPatientController {

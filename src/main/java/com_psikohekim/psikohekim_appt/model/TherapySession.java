@@ -23,7 +23,7 @@ public class TherapySession {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long therapySessionId;
 
     // ========== İLİŞKİLER ==========
     @ManyToOne(fetch = FetchType.LAZY)

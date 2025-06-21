@@ -20,8 +20,8 @@ public class TherapySessionMapper {
         if (session == null) return null;
 
         return SessionResponse.builder()
-                .id(session.getId())
-                .assignmentId(session.getAssignment() != null ? session.getAssignment().getId() : null)
+                .sessionId(session.getTherapySessionId())
+                .assignmentId(session.getAssignment() != null ? session.getAssignment().getTherapistPatientId() : null)
                 .therapistId(session.getTherapistId())
                 .patientId(session.getPatientId())
 

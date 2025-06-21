@@ -26,6 +26,11 @@ public interface TherapySessionService {
     SessionResponse createSession(SessionScheduleRequest request);
 
     /**
+     * Tüm session'ları getir
+     */
+    List<SessionResponse> getAllSessions();
+
+    /**
      * Session'ı güncelle
      */
     SessionResponse updateSession(Long sessionId, SessionUpdateRequest request);
