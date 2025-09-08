@@ -1,0 +1,61 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD:}  # dev’de opsiyonel
+
+server:
+  port: ${SERVER_PORT:8083}
+
+security:
+  oauth2:
+    client:
+      registration:
+        google:
+          client-id: ${GOOGLE_CLIENT_ID}
+          client-secret: ${GOOGLE_CLIENT_SECRET}
+          redirect-uri: ${GOOGLE_REDIRECT_URI}
+          scope:
+            - https://www.googleapis.com/auth/calendar.readonly
+    provider:
+      google:
+        authorization-uri: https://accounts.google.com/o/oauth2/auth
+        token-uri: https://oauth2.googleapis.com/token
+
+services:
+  bpmn:
+    url: ${BPMN_SERVICE_URL}
+
+camunda:
+  base-url: ${CAMUNDA_BASE_URL}
+  process-key: ${CAMUNDA_PROCESS_KEY}
+
+webhook:
+  base-url: ${WEBHOOK_BASE_URL}
+  path: ${WEBHOOK_PATH}
+
+twilio:
+  account:
+    sid: ${TWILIO_ACCOUNT_SID}
+  auth:
+    token: ${TWILIO_AUTH_TOKEN}
+  whatsapp:
+    from: ${TWILIO_WHATSAPP_FROM}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com_psikohekim.psikohekim_appt: DEBUG
