@@ -1,42 +1,97 @@
+version: "3.9"
 
 services:
-  nginx:
+  # Backend (Spring Boot)
+  backend:
     build:
-      context: ./nginx
+      context: .
       dockerfile: Dockerfile
     ports:
-      - "80:80"
-      - "443:443"
+      - "8083:8083"
     environment:
-      - FRONTEND_PROXY_PASS=frontend
-      - KEYCLOAK_PROXY_PASS=keycloak
+      - SPRING_PROFILES_ACTIVE=dev
+      - DB_URL=jdbc:postgresql://postgres-app:5432/psiko_db
+      - DB_USERNAME=keycloak
+      - DB_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - GOOGLE_REDIRECT_URI=http://localhost:8083/api/google-calendar/callback
+      - CAMUNDA_BASE_URL=http://zeebe:26500
+      - CAMUNDA_PROCESS_KEY=Process_Patient
+      - BPMN_SERVICE_URL=http://zeebe:26500/api/bpmn
+      - WEBHOOK_BASE_URL=http://localhost:8083
+      - WEBHOOK_PATH=/webhooks/whatsapp
+    secrets:
+      - google_client_id
+      - google_client_secret
+      - twilio_account_sid
+      - twilio_auth_token
+      - twilio_whatsapp_from
     networks:
-      - local
-  frontend:
-    build:
-      context: ./PsikoHekimFrontend
-      dockerfile: Dockerfile
-    networks:
-      - local
-  postgres:
-    image: postgres:latest
+      - psiko-network
+    depends_on:
+      postgres-app:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  # PostgreSQL for Application Data
+  postgres-app:
+    image: postgres:15
     restart: always
     ports:
       - "5432:5432"
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
+      - postgres_app_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: psiko_db
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    networks:
+      - psiko-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d psiko_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Keycloak
+  postgres-keycloak:
+    image: postgres:15
+    restart: always
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
     networks:
-      - local
+      - psiko-network
+
+  # PostgreSQL for Camunda BPM
+  postgres-bpm:
+    image: postgres:15
+    restart: always
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_bpm_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: camunda
+      POSTGRES_USER: camunda
+      POSTGRES_PASSWORD: camunda
+    networks:
+      - psiko-network
+
+  # Keycloak
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     command: start
     restart: always
-    links:
-      - postgres
+    ports:
+      - "8080:8080"
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
@@ -44,15 +99,109 @@ services:
       - KC_DB_SCHEMA=public
       - KC_DB_USERNAME=keycloak
       - KC_DB_PASSWORD=password
-      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_DB_URL=jdbc:postgresql://postgres-keycloak:5432/keycloak
       - KC_FEATURES=token-exchange,admin-fine-grained-authz
       - KC_HOSTNAME_STRICT=false
       - KC_HOSTNAME_STRICT_HTTPS=false
       - KC_HTTP_ENABLED=true
       - KC_PROXY=none
     networks:
-      - local
+      - psiko-network
+    depends_on:
+      postgres-keycloak:
+        condition: service_started
+
+  # Redis
+  redis:
+    image: redis:7
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - psiko-network
+
+  # Camunda Zeebe (Workflow Engine)
+  zeebe:
+    image: camunda/zeebe:8.2.0
+    ports:
+      - "26500:26500"
+    environment:
+      - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=simple
+      - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_SIMPLE_DEFAULT_USER=admin
+      - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_SIMPLE_DEFAULT_PASSWORD=admin
+    volumes:
+      - zeebe_data:/usr/local/zeebe/data
+    networks:
+      - psiko-network
+
+  # Camunda Operate
+  operate:
+    image: camunda/operate:8.2.0
+    ports:
+      - "8081:8080"
+    environment:
+      - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
+      - CAMUNDA_OPERATE_ZEEBE_SECURITY_PLAINTEXT=true
+      - CAMUNDA_OPERATE_ZEEBE_SECURITY_USERNAME=admin
+      - CAMUNDA_OPERATE_ZEEBE_SECURITY_PASSWORD=admin
+      - CAMUNDA_OPERATE_ELASTICSEARCH_URL=http://elasticsearch:9200
+    networks:
+      - psiko-network
+    depends_on:
+      - zeebe
+      - elasticsearch
+
+  # Camunda Tasklist
+  tasklist:
+    image: camunda/tasklist:8.2.0
+    ports:
+      - "8082:8080"
+    environment:
+      - CAMUNDA_TASKLIST_ZEEBE_GATEWAYADDRESS=zeebe:26500
+      - CAMUNDA_TASKLIST_ZEEBE_SECURITY_PLAINTEXT=true
+      - CAMUNDA_TASKLIST_ZEEBE_SECURITY_USERNAME=admin
+      - CAMUNDA_TASKLIST_ZEEBE_SECURITY_PASSWORD=admin
+      - CAMUNDA_TASKLIST_ELASTICSEARCH_URL=http://elasticsearch:9200
+    networks:
+      - psiko-network
+    depends_on:
+      - zeebe
+      - elasticsearch
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - psiko-network
 
 networks:
-  local:
-    driver: bridge 
+  psiko-network:
+    driver: bridge
+
+volumes:
+  postgres_app_data:
+  postgres_keycloak_data:
+  postgres_bpm_data:
+  elasticsearch_data:
+  zeebe_data:
+
+secrets:
+  google_client_id:
+    file: ./secrets/google-client-id
+  google_client_secret:
+    file: ./secrets/google-client-secret
+  twilio_account_sid:
+    file: ./secrets/twilio-account-sid
+  twilio_auth_token:
+    file: ./secrets/twilio-auth-token
+  twilio_whatsapp_from:
+    file: ./secrets/twilio-whatsapp-from
