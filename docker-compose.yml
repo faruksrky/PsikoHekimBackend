@@ -1,0 +1,58 @@
+
+services:
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - FRONTEND_PROXY_PASS=frontend
+      - KEYCLOAK_PROXY_PASS=keycloak
+    networks:
+      - local
+  frontend:
+    build:
+      context: ./PsikoHekimFrontend
+      dockerfile: Dockerfile
+    networks:
+      - local
+  postgres:
+    image: postgres:latest
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    networks:
+      - local
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    command: start
+    restart: always
+    links:
+      - postgres
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_DB=postgres
+      - KC_DB_SCHEMA=public
+      - KC_DB_USERNAME=keycloak
+      - KC_DB_PASSWORD=password
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
+      - KC_FEATURES=token-exchange,admin-fine-grained-authz
+      - KC_HOSTNAME_STRICT=false
+      - KC_HOSTNAME_STRICT_HTTPS=false
+      - KC_HTTP_ENABLED=true
+      - KC_PROXY=none
+    networks:
+      - local
+
+networks:
+  local:
+    driver: bridge 
