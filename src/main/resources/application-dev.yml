@@ -1,32 +1,48 @@
 spring:
+  config:
+    # Host’ta secrets klasöründen oku (dosya adı=property adı, içerik=değer)
+    import: optional:configtree:./secrets/
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:postgresql://localhost:5433/psiko_db
+    username: UserPsiko
+    password: password
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD:}  # dev’de opsiyonel
+      host: localhost
+      port: 6379
+      password: ${REDIS_PASSWORD:}  # dev’de genelde boş
 
 server:
-  port: ${SERVER_PORT:8083}
+  port: 8083
+
+# Zeebe: host’a publish edilen gateway
+zeebe:
+  client:
+    broker:
+      gatewayAddress: localhost:26500
+    security:
+      plaintext: true
+
+services:
+  bpmn:
+    url: http://localhost:8082/api/bpmn
+
+webhook:
+  base-url: http://localhost:8083
+  path: /webhooks/whatsapp
 
 security:
   oauth2:
     client:
       registration:
         google:
-          client-id: ${GOOGLE_CLIENT_ID}
-          client-secret: ${GOOGLE_CLIENT_SECRET}
-          redirect-uri: ${GOOGLE_REDIRECT_URI}
+          client-id: ${spring.security.oauth2.client.registration.google.client-id}
+          client-secret: ${spring.security.oauth2.client.registration.google.client-secret}
+          redirect-uri: http://localhost:8083/api/google-calendar/callback
           scope:
             - https://www.googleapis.com/auth/calendar.readonly
     provider:
@@ -34,25 +50,13 @@ security:
         authorization-uri: https://accounts.google.com/o/oauth2/auth
         token-uri: https://oauth2.googleapis.com/token
 
-services:
-  bpmn:
-    url: ${BPMN_SERVICE_URL}
-
-camunda:
-  base-url: ${CAMUNDA_BASE_URL}
-  process-key: ${CAMUNDA_PROCESS_KEY}
-
-webhook:
-  base-url: ${WEBHOOK_BASE_URL}
-  path: ${WEBHOOK_PATH}
-
 twilio:
   account:
-    sid: ${TWILIO_ACCOUNT_SID}
+    sid: ${twilio.account.sid}
   auth:
-    token: ${TWILIO_AUTH_TOKEN}
+    token: ${twilio.auth.token}
   whatsapp:
-    from: ${TWILIO_WHATSAPP_FROM}
+    from: ${twilio.whatsapp.from}
 
 logging:
   level:
