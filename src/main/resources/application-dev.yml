@@ -1,7 +1,9 @@
+server:
+  port: 8085
+
 spring:
   config:
-    # Host’ta secrets klasöründen oku (dosya adı=property adı, içerik=değer)
-    import: optional:configtree:./secrets/
+    import: "optional:configtree:/Users/fs648/Desktop/PsikoHekim/PsikoHekimBackend/secrets/"
   datasource:
     url: jdbc:postgresql://localhost:5433/psiko_db
     username: UserPsiko
@@ -14,12 +16,21 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: ${REDIS_PASSWORD:}  # dev’de genelde boş
+      password: ${REDIS_PASSWORD:}
 
-server:
-  port: 8083
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            # client-id / client-secret / redirect-uri YOK (secrets dolduracak)
+            scope:
+              - https://www.googleapis.com/auth/calendar.readonly
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com   # önerilen
+            # (authorization-uri/token-uri gerekmez)
 
-# Zeebe: host’a publish edilen gateway
 zeebe:
   client:
     broker:
@@ -29,26 +40,11 @@ zeebe:
 
 services:
   bpmn:
-    url: http://localhost:8082/api/bpmn
+    url: http://localhost:8082
 
 webhook:
   base-url: http://localhost:8083
   path: /webhooks/whatsapp
-
-security:
-  oauth2:
-    client:
-      registration:
-        google:
-          client-id: ${spring.security.oauth2.client.registration.google.client-id}
-          client-secret: ${spring.security.oauth2.client.registration.google.client-secret}
-          redirect-uri: http://localhost:8083/api/google-calendar/callback
-          scope:
-            - https://www.googleapis.com/auth/calendar.readonly
-    provider:
-      google:
-        authorization-uri: https://accounts.google.com/o/oauth2/auth
-        token-uri: https://oauth2.googleapis.com/token
 
 twilio:
   account:
@@ -63,3 +59,4 @@ logging:
     root: INFO
     org.springframework.web: DEBUG
     com_psikohekim.psikohekim_appt: DEBUG
+    org.springframework.boot.context.config: DEBUG

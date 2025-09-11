@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@FeignClient(name = "bpmn-service", url = "${services.bpmn.url}")
+@FeignClient(name = "bpmn-service", url = "${services.bpmn.url:http://localhost:8082}")
 public interface BpmnServiceClient {
 
     @PostMapping("/start-process")
