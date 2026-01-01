@@ -4,7 +4,10 @@ import com_psikohekim.psikohekim_appt.dto.request.PatientRequest;
 import com_psikohekim.psikohekim_appt.dto.response.PatientResponse;
 import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
 import com_psikohekim.psikohekim_appt.model.Patient;
+import com_psikohekim.psikohekim_appt.model.TherapistPatient;
+import com_psikohekim.psikohekim_appt.enums.AssignmentStatus;
 import com_psikohekim.psikohekim_appt.repository.PatientRepository;
+import com_psikohekim.psikohekim_appt.repository.TherapistPatientRepository;
 import com_psikohekim.psikohekim_appt.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
+    private final TherapistPatientRepository therapistPatientRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -30,6 +34,29 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
+    public PatientResponse updatePatient(Long patientId, PatientRequest patientRequest) throws ResourceNotFoundException {
+        // Önce mevcut patient'ı bul
+        Patient existingPatient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found with ID: " + patientId));
+        
+        // Yeni bilgileri güncelle
+        existingPatient.setPatientFirstName(patientRequest.getPatientFirstName());
+        existingPatient.setPatientLastName(patientRequest.getPatientLastName());
+        existingPatient.setPatientAge(patientRequest.getPatientAge());
+        existingPatient.setPatientEmail(patientRequest.getPatientEmail());
+        existingPatient.setPatientPhoneNumber(patientRequest.getPatientPhoneNumber());
+        existingPatient.setPatientGender(patientRequest.getPatientGender());
+        existingPatient.setPatientCountry(patientRequest.getPatientCountry());
+        existingPatient.setPatientCity(patientRequest.getPatientCity());
+        existingPatient.setPatientAddress(patientRequest.getPatientAddress());
+        existingPatient.setPatientReference(patientRequest.getPatientReference());
+        
+        // Güncellenmiş patient'ı kaydet
+        Patient updatedPatient = patientRepository.save(existingPatient);
+        return modelMapper.map(updatedPatient, PatientResponse.class);
+    }
+
+    @Override
     public Map<String, List<PatientResponse>> getPatients() throws ResourceNotFoundException {
         List<Patient> patients = patientRepository.findAll();
         if (patients.isEmpty()) {
@@ -37,8 +64,26 @@ public class PatientServiceImpl implements PatientService {
         }
 
         List<PatientResponse> patientResponses = patients.stream()
-                .map(patient -> modelMapper.map(patient, PatientResponse.class))
+                .map(patient -> {
+                    PatientResponse patientResponse = modelMapper.map(patient, PatientResponse.class);
+                    
+                    // TherapistPatient tablosunda aktif atama var mı kontrol et
+                    List<TherapistPatient> assignments = therapistPatientRepository.findByPatientAndAssignmentStatus(
+                        patient, AssignmentStatus.ACTIVE);
+                    
+                    // Eğer aktif atama varsa, therapistId'yi set et
+                    if (!assignments.isEmpty()) {
+                        TherapistPatient activeAssignment = assignments.get(0);
+                        patientResponse.setTherapistId(activeAssignment.getTherapist().getTherapistId());
+                    } else {
+                        // Atanmamış için null set et
+                        patientResponse.setTherapistId(null);
+                    }
+                    
+                    return patientResponse;
+                })
                 .collect(Collectors.toList());
+                
         Map<String, List<PatientResponse>> response = new HashMap<>();
         response.put("patients", patientResponses);
         return response;

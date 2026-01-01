@@ -1,11 +1,11 @@
 server:
-  port: 8085
+  port: ${PORT:8083}  # Railway PORT env var'ını kullan, yoksa 8083
 
 spring:
   config:
     import: "optional:configtree:/Users/fs648/Desktop/PsikoHekim/PsikoHekimBackend/secrets/"
   datasource:
-    url: jdbc:postgresql://localhost:5433/psiko_db
+    url: jdbc:postgresql://localhost:5433/psikohekim
     username: UserPsiko
     password: password
   jpa:
@@ -53,6 +53,13 @@ twilio:
     token: ${twilio.auth.token}
   whatsapp:
     from: ${twilio.whatsapp.from}
+
+microsoft:
+  graph:
+    client-id: ${microsoft.graph.client-id}
+    client-secret: ${microsoft.graph.client-secret}
+    tenant-id: ${microsoft.graph.tenant-id}
+    redirect-uri: ${microsoft.graph.redirect-uri}
 
 logging:
   level:

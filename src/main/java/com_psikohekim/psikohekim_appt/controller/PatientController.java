@@ -28,6 +28,11 @@ public class PatientController {
         return patientService.addPatient(patient);
     }
 
+    @PutMapping("/addPatient/{patientId}")
+    public PatientResponse updatePatient(@PathVariable Long patientId, @RequestBody PatientRequest patient) throws ConflictException, InvalidRequestException, ResourceNotFoundException {
+        return patientService.updatePatient(patientId, patient);
+    }
+
     @GetMapping("/all")
     public Map<String, List<PatientResponse>> getPatients() throws ResourceNotFoundException {
         return patientService.getPatients();

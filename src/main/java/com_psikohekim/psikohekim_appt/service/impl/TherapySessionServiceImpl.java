@@ -48,6 +48,8 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     @Override
     public SessionResponse createSession(SessionScheduleRequest request) {
         log.info("Creating new session for assignment: {}, patientId: {}", request.getAssignmentId(), request.getPatientId());
+        log.info("🔔 Notification settings: sendNotification={}, requirePatientApproval={}", 
+                request.getSendNotification(), request.getRequirePatientApproval());
 
         // Assignment'ı bul - önce assignmentId, sonra patientId ile
         TherapistPatient assignment;
@@ -55,9 +57,9 @@ public class TherapySessionServiceImpl implements TherapySessionService {
             assignment = assignmentRepository.findById(request.getAssignmentId())
                     .orElseThrow(() -> new RuntimeException("Assignment not found: " + request.getAssignmentId()));
         } else if (request.getPatientId() != null) {
-            // patientId ile assignment bul (therapist bilgisi gerekli)
-            // Bu durumda therapist bilgisini request'ten almalıyız veya context'ten
-            throw new RuntimeException("patientId ile session oluşturma henüz desteklenmiyor. assignmentId kullanın.");
+            // patientId ile assignment bul
+            assignment = assignmentRepository.findByPatientPatientId(request.getPatientId())
+                    .orElseThrow(() -> new RuntimeException("Assignment not found for patient: " + request.getPatientId()));
         } else {
             throw new RuntimeException("Either assignmentId or patientId must be provided");
         }
@@ -72,7 +74,16 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         session.setSessionType(request.getSessionType());
         session.setSessionFormat(request.getSessionFormat());
         session.setSessionNotes(request.getNotes());
-        session.setStatus(SessionStatus.SCHEDULED);
+        
+        // Hasta onayı gerekli mi?
+        if (Boolean.TRUE.equals(request.getRequirePatientApproval())) {
+            session.setStatus(SessionStatus.PENDING_APPROVAL);
+            log.info("Session created with PENDING_APPROVAL status - waiting for patient approval");
+        } else {
+            session.setStatus(SessionStatus.SCHEDULED);
+            log.info("Session created with SCHEDULED status");
+        }
+        
         session.setPaymentStatus("PENDING");
         session.setCreatedBy("SYSTEM");
         session.setUpdatedBy("SYSTEM");
@@ -80,19 +91,102 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         TherapySession savedSession = sessionRepository.save(session);
         log.info("Session created successfully: {}", savedSession.getTherapySessionId());
 
-        // WhatsApp mesajı gönder
-        try {
-            whatsAppService.sendAppointmentConfirmation(
-                    assignment.getPatient(),
-                    assignment.getTherapist(),
-                    request.getScheduledDate()
-            );
-        } catch (Exception e) {
-            log.error("WhatsApp mesajı gönderilemedi: {}", e.getMessage());
-            // WhatsApp hatası session oluşturmayı engellemez
+        // WhatsApp/Twilio bildirimi gönder
+        if (Boolean.TRUE.equals(request.getSendNotification())) {
+            try {
+                log.info("Sending WhatsApp/Twilio notification for session: {}", savedSession.getTherapySessionId());
+                
+                if (Boolean.TRUE.equals(request.getRequirePatientApproval())) {
+                    // Hasta onayı gerekli - onay linki ile bildirim gönder
+                    whatsAppService.sendSessionPlanningNotification(
+                            assignment.getPatient(),
+                            assignment.getTherapist(),
+                            request.getScheduledDate(),
+                            savedSession.getTherapySessionId(),
+                            request.getSessionFee()
+                    );
+                } else {
+                    // Normal onay mesajı gönder
+                    whatsAppService.sendAppointmentConfirmation(
+                            assignment.getPatient(),
+                            assignment.getTherapist(),
+                            request.getScheduledDate()
+                    );
+                }
+                
+                // Terapist'e de bildirim gönder
+                whatsAppService.sendTherapistSessionNotification(
+                        assignment.getTherapist(),
+                        assignment.getPatient(),
+                        request.getScheduledDate(),
+                        savedSession.getTherapySessionId()
+                );
+                
+                log.info("WhatsApp/Twilio notifications sent successfully");
+            } catch (Exception e) {
+                log.error("WhatsApp/Twilio mesajı gönderilemedi: {}", e.getMessage());
+                // WhatsApp hatası session oluşturmayı engellemez
+            }
         }
 
         return sessionMapper.toResponseDto(savedSession);
+    }
+
+    @Override
+    public SessionResponse approveSession(Long sessionId) {
+        log.info("Approving session: {}", sessionId);
+        
+        TherapySession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+        
+        if (session.getStatus() != SessionStatus.PENDING_APPROVAL) {
+            throw new RuntimeException("Session is not in PENDING_APPROVAL status. Current status: " + session.getStatus());
+        }
+        
+        // Status'u SCHEDULED olarak güncelle
+        session.setStatus(SessionStatus.SCHEDULED);
+        session.setUpdatedBy("PATIENT_APPROVAL");
+        session.setUpdatedAt(LocalDateTime.now());
+        
+        TherapySession updatedSession = sessionRepository.save(session);
+        log.info("Session approved successfully: {}", sessionId);
+        
+        // Hasta ve terapiste onay mesajı gönder
+        try {
+            whatsAppService.sendSessionConfirmedNotification(
+                    updatedSession.getAssignment().getPatient(),
+                    updatedSession.getAssignment().getTherapist(),
+                    updatedSession.getScheduledDate(),
+                    updatedSession.getTherapySessionId()
+            );
+            log.info("Session confirmation notification sent for session: {}", sessionId);
+        } catch (Exception e) {
+            log.error("Session confirmation notification gönderilemedi: {}", e.getMessage());
+        }
+        
+        return sessionMapper.toResponseDto(updatedSession);
+    }
+
+    @Override
+    public SessionResponse rejectSession(Long sessionId) {
+        log.info("Rejecting session: {}", sessionId);
+        
+        TherapySession session = sessionRepository.findById(sessionId)
+                .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
+        
+        if (session.getStatus() != SessionStatus.PENDING_APPROVAL) {
+            throw new RuntimeException("Session is not in PENDING_APPROVAL status. Current status: " + session.getStatus());
+        }
+        
+        // Status'u REJECTED olarak güncelle
+        session.setStatus(SessionStatus.REJECTED);
+        session.setUpdatedBy("PATIENT_REJECTION");
+        session.setUpdatedAt(LocalDateTime.now());
+        
+        TherapySession updatedSession = sessionRepository.save(session);
+        log.info("Session rejected successfully: {}", sessionId);
+        
+        return sessionMapper.toResponseDto(updatedSession);
     }
 
     @Override
@@ -108,6 +202,30 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     public List<SessionResponse> getAllSessions() {
         log.info("Fetching all therapy sessions");
         List<TherapySession> sessions = sessionRepository.findAllWithPatientAndTherapistData();
+        return sessionMapper.toResponseDtoList(sessions);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SessionResponse> getAllSessionsForUser(String userEmail, boolean isAdmin, Long therapistId) {
+        log.info("Fetching sessions for user: {}, isAdmin: {}, therapistId: {}", userEmail, isAdmin, therapistId);
+        
+        List<TherapySession> sessions;
+        
+        if (isAdmin) {
+            // Admin tüm seansları görebilir
+            sessions = sessionRepository.findAllWithPatientAndTherapistData();
+            log.info("Admin user - returning all {} sessions", sessions.size());
+        } else {
+            // User sadece kendi seanslarını görebilir
+            if (therapistId == null) {
+                log.warn("User is not admin and therapistId is null, returning empty list");
+                return List.of();
+            }
+            sessions = sessionRepository.findAllByTherapistIdWithPatientAndTherapistData(therapistId);
+            log.info("User - returning {} sessions for therapistId: {}", sessions.size(), therapistId);
+        }
+        
         return sessionMapper.toResponseDtoList(sessions);
     }
 

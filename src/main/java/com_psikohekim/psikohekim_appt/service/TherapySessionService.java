@@ -30,6 +30,11 @@ public interface TherapySessionService {
      */
     List<SessionResponse> getAllSessionsDesc();
     List<SessionResponse> getAllSessions();
+    
+    /**
+     * Kullanıcı için session'ları getir (admin/user kontrolü ile)
+     */
+    List<SessionResponse> getAllSessionsForUser(String userEmail, boolean isAdmin, Long therapistId);
     /**
      * Session'ı güncelle
      */
@@ -44,6 +49,16 @@ public interface TherapySessionService {
      * Session'ı sil
      */
     void deleteSession(Long sessionId);
+
+    /**
+     * Hasta onayı - Session'ı onayla
+     */
+    SessionResponse approveSession(Long sessionId);
+
+    /**
+     * Hasta onayı - Session'ı reddet
+     */
+    SessionResponse rejectSession(Long sessionId);
 
     // ========== SESSION OPERATIONS ==========
 

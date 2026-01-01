@@ -17,5 +17,6 @@ public class PatientRequest {
     private String patientGender;
     private Long therapistId;
     private String patientReference;
+    // PaymentMethod Patient entity'sinde yok, Payment entity'sinde var
 
 }

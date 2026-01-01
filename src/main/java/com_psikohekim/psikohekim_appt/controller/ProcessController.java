@@ -63,4 +63,19 @@ public class ProcessController {
     public ResponseEntity<Map<String, Object>> publishMessage(@RequestBody PublishMessageRequest request) {
         return ResponseEntity.ok(processService.publishMessage(request));
     }
+
+    @GetMapping("/incomplete-assignments")
+    public ResponseEntity<List<PendingRequest>> getIncompleteAssignments() throws InvalidRequestException {
+        return ResponseEntity.ok(processService.getIncompleteAssignments());
+    }
+
+    @GetMapping("/status/{processInstanceKey}")
+    public ResponseEntity<Map<String, Object>> getProcessStatus(@PathVariable String processInstanceKey) throws InvalidRequestException {
+        return ResponseEntity.ok(processService.getProcessStatus(processInstanceKey));
+    }
+
+    @PostMapping("/restart-assignment/{assignmentId}")
+    public ResponseEntity<Map<String, Object>> restartAssignment(@PathVariable Long assignmentId) throws InvalidRequestException {
+        return ResponseEntity.ok(processService.restartAssignment(assignmentId));
+    }
 }

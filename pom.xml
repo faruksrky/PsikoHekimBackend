@@ -97,6 +97,18 @@
 			<artifactId>google-api-services-calendar</artifactId>
 			<version>v3-rev20230825-2.0.0</version>
 		</dependency>
+
+		<!-- Microsoft Graph API Dependencies -->
+		<dependency>
+			<groupId>com.microsoft.graph</groupId>
+			<artifactId>microsoft-graph</artifactId>
+			<version>5.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.microsoft.graph</groupId>
+			<artifactId>microsoft-graph-auth</artifactId>
+			<version>0.4.0</version>
+		</dependency>
 		<dependency>
 			<groupId>com.google.oauth-client</groupId>
 			<artifactId>google-oauth-client-jetty</artifactId>

@@ -68,9 +68,24 @@ public class TherapySessionController {
     }
 
     @GetMapping("/getSessions")
-    public ResponseEntity<List<SessionResponse>> getAllSessions() {
+    public ResponseEntity<List<SessionResponse>> getAllSessions(
+            @RequestParam(required = false) Long therapistId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            List<SessionResponse> sessions = sessionService.getAllSessions();
+            // TODO: JWT token'dan user email ve isAdmin bilgisini al
+            // Şimdilik therapistId parametresi ile çalışıyoruz
+            // Admin olduğunu controller'da kontrol etmeliyiz
+            boolean isAdmin = true; // TODO: JWT'den admin kontrolü yap
+            String userEmail = ""; // TODO: JWT'den email al
+            
+            List<SessionResponse> sessions;
+            if (therapistId != null) {
+                // therapistId verilmişse o therapist'ın seanslarını getir
+                sessions = sessionService.getSessionsByTherapist(therapistId);
+            } else {
+                // therapistId yoksa tüm seansları getir (admin kontrolü yapılmalı)
+                sessions = sessionService.getAllSessionsForUser(userEmail, isAdmin, null);
+            }
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {
             log.error("Error fetching all sessions: {}", e.getMessage(), e);
@@ -502,6 +517,52 @@ public class TherapySessionController {
         } catch (RuntimeException e) {
             log.error("Error cancelling all sessions for assignment {}: {}", assignmentId, e.getMessage());
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    // ========== PATIENT APPROVAL ==========
+
+    /**
+     * Hasta onayı - Seansı onayla
+     * GET /api/therapy-sessions/approve/{sessionId}
+     */
+    @GetMapping("/approve/{sessionId}")
+    public ResponseEntity<Map<String, Object>> approveSession(@PathVariable Long sessionId) {
+        try {
+            SessionResponse response = sessionService.approveSession(sessionId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Seans başarıyla onaylandı!",
+                    "session", response
+            ));
+        } catch (RuntimeException e) {
+            log.error("Error approving session {}: {}", sessionId, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Seans onaylanamadı: " + e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Hasta onayı - Seansı reddet
+     * GET /api/therapy-sessions/reject/{sessionId}
+     */
+    @GetMapping("/reject/{sessionId}")
+    public ResponseEntity<Map<String, Object>> rejectSession(@PathVariable Long sessionId) {
+        try {
+            SessionResponse response = sessionService.rejectSession(sessionId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Seans reddedildi.",
+                    "session", response
+            ));
+        } catch (RuntimeException e) {
+            log.error("Error rejecting session {}: {}", sessionId, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Seans reddedilemedi: " + e.getMessage()
+            ));
         }
     }
 

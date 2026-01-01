@@ -8,14 +8,17 @@ import java.util.Map;
 @FeignClient(name = "bpmn-service", url = "${services.bpmn.url:http://localhost:8082}")
 public interface BpmnServiceClient {
 
-    @PostMapping("/start-process")
+    @PostMapping("/api/bpmn/patient/start-process")
     Map<String, Object> startProcess(@RequestBody Map<String, String> request);
 
-    @GetMapping("/tasks")
+    @GetMapping("/api/bpmn/tasks")
     List<Map<String, Object>> getTasks(@RequestParam("processInstanceId") String processInstanceId);
 
-    @PostMapping("/message")
+    @PostMapping("/api/bpmn/message")
     Map<String, Object> publishMessage(@RequestBody Map<String, Object> request);
+
+    @GetMapping("/api/bpmn/process/{processInstanceKey}")
+    Map<String, Object> getProcessInfo(@PathVariable String processInstanceKey);
 }
 
 

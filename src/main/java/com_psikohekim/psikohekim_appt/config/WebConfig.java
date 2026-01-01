@@ -16,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
+import java.util.List;
 
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -52,7 +53,11 @@ public class WebConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3031"));
+        configuration.setAllowedOriginPatterns(List.of(
+                "http://localhost:3031",  // Local development
+                "https://*.psikohekimfrontend.pages.dev", // Cloudflare Pages Production
+                "https://*.iyihislerapp.com"
+        ));// Cloudflare preview deployments (opsiyonel)
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

@@ -20,6 +20,7 @@ public class PatientResponse {
     private String patientCountry;
     private String patientCity;
     private String patientGender;
+    private Long therapistId;
     private List<TherapistResponse> therapist;
     private String patientReference;
 

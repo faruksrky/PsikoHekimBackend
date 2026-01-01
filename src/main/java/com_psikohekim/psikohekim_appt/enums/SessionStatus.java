@@ -6,8 +6,10 @@ package com_psikohekim.psikohekim_appt.enums;
 public enum SessionStatus {
 
     SCHEDULED("Planlandı"),
+    PENDING_APPROVAL("Hasta Onayı Bekliyor"),
     COMPLETED("Tamamlandı"),
     CANCELLED("İptal Edildi"),
+    REJECTED("Hasta Tarafından Reddedildi"),
     NO_SHOW("Hasta Gelmedi"),
     IN_PROGRESS("Devam Ediyor"),
     RESCHEDULED("Ertelendi");
@@ -33,13 +35,13 @@ public enum SessionStatus {
      * Active session mi kontrol et (tamamlanmamış)
      */
     public boolean isActive() {
-        return this == SCHEDULED || this == IN_PROGRESS;
+        return this == SCHEDULED || this == IN_PROGRESS || this == PENDING_APPROVAL;
     }
 
     /**
      * Cancelled status mi kontrol et
      */
     public boolean isCancelled() {
-        return this == CANCELLED || this == NO_SHOW;
+        return this == CANCELLED || this == NO_SHOW || this == REJECTED;
     }
 }

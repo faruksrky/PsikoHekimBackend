@@ -38,7 +38,4 @@ public class Patient {
 
     // Referans bilgisi
     private String patientReference;
-
-    // Terapist ilişkisi TherapistPatient entity'si üzerinden yönetiliyor
-    // @ManyToMany gereksiz - TherapistPatient entity'si kullanılıyor
 }

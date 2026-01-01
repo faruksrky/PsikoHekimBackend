@@ -35,6 +35,16 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
     List<TherapySession> findAllWithPatientAndTherapistData();
 
     /**
+     * Therapist ID'ye göre tüm session'ları patient ve therapist bilgileriyle birlikte getir
+     */
+    @Query("SELECT DISTINCT ts FROM TherapySession ts " +
+            "LEFT JOIN FETCH ts.patient p " +
+            "LEFT JOIN FETCH ts.therapist t " +
+            "WHERE ts.therapistId = :therapistId " +
+            "ORDER BY ts.scheduledDate DESC")
+    List<TherapySession> findAllByTherapistIdWithPatientAndTherapistData(@Param("therapistId") Long therapistId);
+
+    /**
      * Assignment'a göre tüm session'ları getir
      */
     List<TherapySession> findByAssignment_TherapistPatientIdOrderByScheduledDateDesc(Long assignmentId);

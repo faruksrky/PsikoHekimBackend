@@ -20,4 +20,10 @@ public interface ProcessService {
 
     Map<String, Object> publishMessage(PublishMessageRequest request);
 
+    List<PendingRequest> getIncompleteAssignments() throws InvalidRequestException;
+
+    Map<String, Object> getProcessStatus(String processInstanceKey) throws InvalidRequestException;
+
+    Map<String, Object> restartAssignment(Long assignmentId) throws InvalidRequestException;
+
 }

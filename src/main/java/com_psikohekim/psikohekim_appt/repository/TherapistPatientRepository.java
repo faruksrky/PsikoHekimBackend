@@ -26,6 +26,9 @@ public interface TherapistPatientRepository extends JpaRepository<TherapistPatie
     // Hasta bazlı - otomatik
     List<TherapistPatient> findByPatient(Patient patient);
     List<TherapistPatient> findByPatientAndAssignmentStatus(Patient patient, AssignmentStatus status);
+    
+    // Patient ID ile arama
+    Optional<TherapistPatient> findByPatientPatientId(Long patientId);
 
     // Terapist-Hasta eşleşmesi - otomatik
     Optional<TherapistPatient> findByTherapistAndPatient(Therapist therapist, Patient patient);

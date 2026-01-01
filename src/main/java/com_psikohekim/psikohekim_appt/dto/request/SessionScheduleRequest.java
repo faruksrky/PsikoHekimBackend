@@ -26,6 +26,11 @@ public class SessionScheduleRequest {
     private String sessionType; // INITIAL, REGULAR, FOLLOWUP, FINAL
     private String sessionFormat; // IN_PERSON, ONLINE, PHONE
     private String notes;
+    
+    // WhatsApp/Twilio notification fields
+    private Boolean sendNotification = false;
+    private String notificationType; // WHATSAPP_TWILIO, SMS, EMAIL
+    private Boolean requirePatientApproval = false;
 
     // Manual getters (Lombok issue fix)
     public Long getPatientId() {
