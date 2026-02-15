@@ -44,14 +44,13 @@ sudo ln -sf /etc/nginx/sites-available/api.iyihislerapp.com /etc/nginx/sites-ena
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-## Keycloak Ortam Değişkenleri
+## Keycloak Ortam Değişkenleri (Keycloak 26 hostname v2)
 
 `docker-compose.prod.yml` içinde Keycloak için:
 
-- `KC_PROXY: edge` ✓
-- `KC_HOSTNAME: auth.iyihislerapp.com` ✓
-- `KC_HOSTNAME_PORT: 443` ✓ (kullanıcı tarafında HTTPS)
-- `KC_HOSTNAME_STRICT_HTTPS: false` ✓
+- `KC_HOSTNAME: https://auth.iyihislerapp.com` ✓ (tam URL)
+- `KC_HTTP_ENABLED: true` ✓ (Cloudflare edge TLS)
+- `KC_PROXY_HEADERS: xforwarded` ✓ (X-Forwarded-* header'ları)
 
 ## Sorun Giderme
 
