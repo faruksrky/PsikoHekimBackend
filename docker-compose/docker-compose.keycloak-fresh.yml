@@ -1,0 +1,47 @@
+# Boş Keycloak + PostgreSQL - Sıfırdan kurulum
+# Kullanım: docker compose -f docker-compose/docker-compose.keycloak-fresh.yml --env-file .env up -d
+
+services:
+  postgres:
+    image: postgres:16
+    env_file: ../.env
+    container_name: keycloak-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    volumes:
+      - keycloak_pgdata:/var/lib/postgresql/data
+      - ./postgres-init-fresh:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    env_file: ../.env
+    container_name: keycloak
+    command: start
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_HOSTNAME: https://auth.iyihislerapp.com
+      KC_HOSTNAME_ADMIN: https://auth.iyihislerapp.com
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  keycloak_pgdata:
