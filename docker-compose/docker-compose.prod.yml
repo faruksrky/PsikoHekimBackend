@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0.0
+    image: quay.io/keycloak/keycloak:25.0.6
     container_name: psikohekim-keycloak
     command: start
     environment:
@@ -43,11 +43,11 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER:-postgres}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      # Keycloak 26 hostname v2 - Cloudflare edge TLS termination
+      # Keycloak 25 - hostname v1 (daha stabil prod kurulumu)
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-auth.iyihislerapp.com}
-      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_PORT: "443"
+      KC_PROXY: "edge"
       KC_HTTP_ENABLED: "true"
-      KC_PROXY_HEADERS: "xforwarded"
     ports:
       - "8080:8080"
     depends_on:
