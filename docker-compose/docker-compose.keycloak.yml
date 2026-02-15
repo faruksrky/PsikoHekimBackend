@@ -25,7 +25,7 @@ services:
     image: quay.io/keycloak/keycloak:24.0.4
     env_file: ../.env
     container_name: psikohekim-keycloak
-    command: start --optimized
+    command: start
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
