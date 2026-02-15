@@ -46,7 +46,7 @@ services:
       # Keycloak 25 - hostname v1 (daha stabil prod kurulumu)
       KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-auth.iyihislerapp.com}
       KC_HOSTNAME_PORT: "443"
-      KC_PROXY: "edge"
+      KC_PROXY_HEADERS: "xforwarded"
       KC_HTTP_ENABLED: "true"
     ports:
       - "8080:8080"
