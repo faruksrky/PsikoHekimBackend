@@ -28,3 +28,18 @@ git pull
 ```
 
 `.env` değişmediyse sadece `git pull` + `./deploy.sh` yeterli.
+
+## Şifre Kuralları
+
+**Tüm şifreler için:** En az 12 karakter, büyük harf, küçük harf, rakam ve özel karakter (!@#$%^&* vb.) kullan.
+
+**Keycloak realm şifre politikası (kullanıcı şifreleri):**
+1. Keycloak Admin Console → http://SUNUCU:8080
+2. Realm seç (psikohekim) → **Authentication** → **Policies** sekmesi
+3. **Password Policy** → Add policy:
+   - **Minimum length**: 12
+   - **Digits**: 1
+   - **Uppercase characters**: 1
+   - **Lowercase characters**: 1
+   - **Special characters**: 1
+4. **Save**
