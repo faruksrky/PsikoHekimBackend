@@ -15,11 +15,11 @@ if [ ! -f .env ]; then
 fi
 
 echo ">>> Docker Compose ile build ve başlatılıyor..."
-docker compose -f docker-compose/docker-compose.prod.yml --env-file .env up -d --build
+docker compose -f docker-compose/docker-compose.prod.yml --env-file "$SCRIPT_DIR/.env" up -d --build
 
 echo ""
 echo ">>> Servisler başlatıldı. Durum:"
-docker compose -f docker-compose/docker-compose.prod.yml ps
+docker compose -f docker-compose/docker-compose.prod.yml --env-file "$SCRIPT_DIR/.env" ps
 
 echo ""
 echo ">>> Logları izlemek için:"
