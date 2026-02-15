@@ -29,6 +29,28 @@ git pull
 
 `.env` değişmediyse sadece `git pull` + `./deploy.sh` yeterli.
 
+## HTTPS (Nginx + Let's Encrypt)
+
+**Önce:** Cloudflare/DNS'te `auth.iyihislerapp.com` ve `api.iyihislerapp.com` → sunucu IP (187.77.77.215)
+
+```bash
+cd ~/PsikoHekimBackend/nginx
+sudo bash setup-ssl.sh
+# veya email ile: sudo bash setup-ssl.sh senin@email.com
+```
+
+Sonra `.env` güncelle:
+```
+KEYCLOAK_ISSUER_URI=https://auth.iyihislerapp.com/realms/psikohekim
+KEYCLOAK_HOSTNAME=auth.iyihislerapp.com
+WEBHOOK_BASE_URL=https://api.iyihislerapp.com
+GOOGLE_REDIRECT_URI=https://api.iyihislerapp.com/api/google-calendar/callback
+```
+
+`./deploy.sh` ile backend'i yeniden başlat.
+
+---
+
 ## Şifre Kuralları
 
 **Tüm şifreler için:** En az 12 karakter, büyük harf, küçük harf, rakam ve özel karakter (!@#$%^&* vb.) kullan.
