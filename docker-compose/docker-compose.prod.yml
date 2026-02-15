@@ -44,7 +44,8 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       # Keycloak 26 hostname v2 - Cloudflare edge TLS termination
-      KC_HOSTNAME: https://${KEYCLOAK_HOSTNAME:-auth.iyihislerapp.com}
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-auth.iyihislerapp.com}
+      KC_HOSTNAME_STRICT: "false"
       KC_HTTP_ENABLED: "true"
       KC_PROXY_HEADERS: "xforwarded"
     ports:
