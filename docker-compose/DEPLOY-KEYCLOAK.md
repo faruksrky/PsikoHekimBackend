@@ -24,7 +24,8 @@ docker compose -f docker-compose/docker-compose.prod.yml down
 ## 3. Keycloak + PostgreSQL başlat
 
 ```bash
-docker compose -f docker-compose/docker-compose.keycloak.yml up -d
+# --env-file ile .env'i zorla yükle (şifreler boş kalmasın)
+docker compose -f docker-compose/docker-compose.keycloak.yml --env-file .env up -d
 ```
 
 ## 4. Başlamasını bekle (1-2 dakika)

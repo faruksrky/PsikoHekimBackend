@@ -1,9 +1,11 @@
 # Sadece Keycloak + PostgreSQL - Önce bunu çalıştır
 # Cloudflare -> Nginx:80 -> Keycloak:8080
+# Proje kökünden çalıştır: docker compose -f docker-compose/docker-compose.keycloak.yml up -d
 
 services:
   postgres:
     image: postgres:16
+    env_file: ../.env
     container_name: psikohekim-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -21,6 +23,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.4
+    env_file: ../.env
     container_name: psikohekim-keycloak
     command: start
     environment:
