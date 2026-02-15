@@ -1,48 +1,78 @@
+server:
+  port: ${SERVER_PORT:8083}
+
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/psikohekim}
+    username: ${DB_USERNAME:UserPsiko}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:}
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope:
+              - https://www.googleapis.com/auth/calendar.readonly
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+
+zeebe:
+  client:
+    broker:
+      gatewayAddress: ${ZEEBE_GATEWAY:zeebe:26500}
+    security:
+      plaintext: true
+
 services:
-  postgres:
-    image: postgres:16
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    volumes:
-      - pgdata-dev:/var/lib/postgresql/data
-    ports:
-      - "5433:5432"
-    restart: unless-stopped
+  bpmn:
+    url: ${BPMN_SERVICE_URL:http://bpmn:8082}
 
-  redis:
-    image: redis:7
-    command: ["redis-server", "--save", "", "--appendonly", "no"]
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
+webhook:
+  base-url: ${WEBHOOK_BASE_URL}
+  path: ${WEBHOOK_PATH:/webhooks/whatsapp}
 
-  backend:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
-      SERVER_PORT: 8083
-      DB_URL: jdbc:postgresql://postgres:5432/psiko_db
-      DB_USERNAME: psiko
-      DB_PASSWORD: psiko_pass
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      GOOGLE_REDIRECT_URI: http://localhost:8083/api/google-calendar/callback
-      WEBHOOK_BASE_URL: http://localhost:8083
-      WEBHOOK_PATH: /webhooks/whatsapp
-      BPMN_SERVICE_URL: http://localhost:8082/api/bpmn
-    volumes:
-      - ./secrets:/run/secrets:ro
-      - ./application-dev.yml:/app/application-dev.yml:ro
-    ports:
-      - "8083:8083"
-    depends_on:
-      - postgres
-      - redis
-    restart: unless-stopped
+twilio:
+  account:
+    sid: ${TWILIO_ACCOUNT_SID:}
+  auth:
+    token: ${TWILIO_AUTH_TOKEN:}
+  whatsapp:
+    from: ${TWILIO_WHATSAPP_FROM:}
 
-volumes:
-  pgdata-dev:
+microsoft:
+  graph:
+    client-id: ${MICROSOFT_GRAPH_CLIENT_ID:}
+    client-secret: ${MICROSOFT_GRAPH_CLIENT_SECRET:}
+    tenant-id: ${MICROSOFT_GRAPH_TENANT_ID:}
+    redirect-uri: ${MICROSOFT_GRAPH_REDIRECT_URI:}
+
+app:
+  frontend:
+    url: ${FRONTEND_URL:https://psikohekim.com}
+
+logging:
+  level:
+    root: WARN
+    org.springframework.web: INFO
+    com_psikohekim.psikohekim_appt: INFO
+  file:
+    name: logs/application.log
