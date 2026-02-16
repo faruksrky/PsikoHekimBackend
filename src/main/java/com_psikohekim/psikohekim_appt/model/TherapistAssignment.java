@@ -19,6 +19,9 @@ public class TherapistAssignment {
     private String patientId;
     private String therapistId;
     private String processInstanceKey;
+    private LocalDateTime scheduledDate;
+    private String sessionType;
+    private String sessionFormat;
     @Enumerated(EnumType.STRING)
     private AssignmentStatus status = AssignmentStatus.PENDING;
 
