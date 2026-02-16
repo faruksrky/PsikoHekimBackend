@@ -38,13 +38,13 @@ else
 fi
 
 echo "=== 3. auth config'ten api kaldır (server_name) ==="
-for f in /etc/nginx/sites-enabled/auth.iyihislerapp.com /etc/nginx/sites-available/auth.iyihislerapp.com 2>/dev/null; do
+for f in /etc/nginx/sites-enabled/auth.iyihislerapp.com /etc/nginx/sites-available/auth.iyihislerapp.com; do
   [ -f "$f" ] && sudo sed -i.bak 's/server_name auth.iyihislerapp.com api.iyihislerapp.com/server_name auth.iyihislerapp.com/' "$f" 2>/dev/null || true
   [ -f "$f" ] && sudo sed -i.bak 's/server_name api.iyihislerapp.com auth.iyihislerapp.com/server_name auth.iyihislerapp.com/' "$f" 2>/dev/null || true
 done
 
 echo "=== 4. api config'ten auth kaldır (server_name) ==="
-for f in /etc/nginx/sites-enabled/api.iyihislerapp.com /etc/nginx/sites-available/api.iyihislerapp.com 2>/dev/null; do
+for f in /etc/nginx/sites-enabled/api.iyihislerapp.com /etc/nginx/sites-available/api.iyihislerapp.com; do
   [ -f "$f" ] && sudo sed -i.bak 's/server_name api.iyihislerapp.com auth.iyihislerapp.com/server_name api.iyihislerapp.com/' "$f" 2>/dev/null || true
   [ -f "$f" ] && sudo sed -i.bak 's/server_name auth.iyihislerapp.com api.iyihislerapp.com/server_name api.iyihislerapp.com/' "$f" 2>/dev/null || true
 done
