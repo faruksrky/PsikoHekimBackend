@@ -1,8 +1,15 @@
 # Proje 2: PsikoHekim Backend
 
-Gereksinimler (projeyi ayağa kaldırırken ekleyeceğiz):
-- PostgreSQL (psikohekim DB)
-- Redis
-- Keycloak (URL - Proje 1 çalışıyor olmalı)
+Gereksinimler:
+- Keycloak (Proje 1) çalışıyor olmalı - auth.iyihislerapp.com
+- BPMN çalışıyor olmalı - bpmn.iyihislerapp.com
 
-Compose dosyası: Proje ayağa kalkarken oluşturulacak.
+Başlatma:
+```bash
+cd ~/PsikoHekimBackend
+cp .env.example .env   # Şifreleri doldur
+./deploy.sh psikohekim
+```
+
+- PostgreSQL (psikohekim DB) + Redis + Backend
+- Backend: http://localhost:8083

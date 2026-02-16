@@ -1,0 +1,71 @@
+# Proje 2: PsikoHekim Backend
+# Gereksinim: Keycloak (Proje 1) çalışıyor olmalı - auth.iyihislerapp.com
+# Kullanım: cd PsikoHekimBackend && docker compose -f docker-compose/2-psikohekim/docker-compose.yml --env-file .env up -d --build
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: psikohekim-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: psikohekim
+    volumes:
+      - psikohekim_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d psikohekim"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: psikohekim-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: psikohekim-backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/psikohekim
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      BPMN_SERVICE_URL: ${BPMN_SERVICE_URL:-https://bpmn.iyihislerapp.com}
+      WEBHOOK_BASE_URL: ${WEBHOOK_BASE_URL}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      FRONTEND_URL: ${FRONTEND_URL:-https://iyihislerapp.com}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID:-}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN:-}
+      TWILIO_WHATSAPP_FROM: ${TWILIO_WHATSAPP_FROM:-}
+      MICROSOFT_GRAPH_CLIENT_ID: ${MICROSOFT_GRAPH_CLIENT_ID:-}
+      MICROSOFT_GRAPH_CLIENT_SECRET: ${MICROSOFT_GRAPH_CLIENT_SECRET:-}
+      MICROSOFT_GRAPH_TENANT_ID: ${MICROSOFT_GRAPH_TENANT_ID:-}
+      MICROSOFT_GRAPH_REDIRECT_URI: ${MICROSOFT_GRAPH_REDIRECT_URI:-}
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  psikohekim_pgdata:

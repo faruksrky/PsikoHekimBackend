@@ -3,7 +3,7 @@
 # Her proje ayrı ayağa kaldırılır.
 #
 # Proje 1 (Keycloak): ./deploy.sh keycloak
-# Proje 2 (PsikoHekim): ./deploy.sh psikohekim  (henüz hazır değil)
+# Proje 2 (PsikoHekim): ./deploy.sh psikohekim
 # Proje 3 (BPMN): ./deploy.sh bpmn  (henüz hazır değil)
 
 set -e
@@ -27,8 +27,16 @@ case "$PROJECT" in
     echo ">>> Log: docker compose -f docker-compose/1-keycloak/docker-compose.yml logs -f keycloak"
     ;;
   psikohekim)
-    echo ">>> Proje 2: PsikoHekim - henüz hazır değil. Gereksinimler eklenince oluşturulacak."
-    exit 1
+    if [ ! -f .env ]; then
+      echo "HATA: .env dosyası yok. Önce: cp .env.example .env"
+      echo "Sonra POSTGRES_PASSWORD, REDIS_PASSWORD, KEYCLOAK_ISSUER_URI doldur."
+      exit 1
+    fi
+    echo ">>> Proje 2: PsikoHekim Backend başlatılıyor..."
+    docker compose -f docker-compose/2-psikohekim/docker-compose.yml --env-file .env up -d --build
+    echo ""
+    echo ">>> Backend: http://localhost:8083"
+    echo ">>> Log: docker logs -f psikohekim-backend"
     ;;
   bpmn)
     echo ">>> Proje 3: BPMN - Ayrı proje olarak çalışır (BPMN repo)"
@@ -39,7 +47,7 @@ case "$PROJECT" in
   *)
     echo "Kullanım: ./deploy.sh [keycloak|psikohekim|bpmn]"
     echo "  keycloak  - Keycloak + PostgreSQL (varsayılan)"
-    echo "  psikohekim - Backend (henüz hazır değil)"
+    echo "  psikohekim - Backend (PostgreSQL, Redis)"
     echo "  bpmn     - BPMN servisleri (henüz hazır değil)"
     exit 1
     ;;
