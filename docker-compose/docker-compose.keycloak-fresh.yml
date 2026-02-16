@@ -32,8 +32,8 @@ services:
       KC_DB_USERNAME: postgres
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      KC_HOSTNAME: https://auth.iyihislerapp.com
-      KC_HOSTNAME_ADMIN: https://auth.iyihislerapp.com
+      KC_HOSTNAME: auth.iyihislerapp.com
+      KC_HOSTNAME_PORT: "443"
       KC_PROXY_HEADERS: xforwarded
       KC_HTTP_ENABLED: "true"
     ports:
