@@ -43,8 +43,7 @@ public class WebConfig {
                                         "/pricing/**",
                                         "/api/users/**",
                                         "/process/send-assignment-request",
-                                        "/process/**",
-                                        "/api/bpmn/**"
+                                        "/process/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 );

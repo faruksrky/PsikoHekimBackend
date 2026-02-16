@@ -31,12 +31,10 @@ case "$PROJECT" in
     exit 1
     ;;
   bpmn)
-    echo ">>> Proje 3: BPMN (Elasticsearch + Zeebe) başlatılıyor..."
-    docker compose -f docker-compose/3-bpmn/docker-compose.yml up -d
-    echo ""
-    echo ">>> Zeebe: localhost:26500"
-    echo ">>> Elasticsearch: localhost:9200"
-    echo ">>> Log: docker compose -f docker-compose/3-bpmn/docker-compose.yml logs -f"
+    echo ">>> Proje 3: BPMN - Ayrı proje olarak çalışır (BPMN repo)"
+    echo ">>> BPMN projesinde: cd BPMN && docker compose up -d"
+    echo ">>> BPMN API: localhost:8082"
+    exit 1
     ;;
   *)
     echo "Kullanım: ./deploy.sh [keycloak|psikohekim|bpmn]"

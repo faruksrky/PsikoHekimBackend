@@ -34,14 +34,13 @@ spring:
 zeebe:
   client:
     broker:
-      gatewayAddress: localhost:26500
+      gatewayAddress: localhost:26501
     security:
       plaintext: true
 
 services:
-  # Backend kendi BPMN endpoint'lerini kullanıyor (Zeebe'ye direkt bağlanıyor)
   bpmn:
-    url: http://localhost:8083
+    url: http://localhost:8082
 
 webhook:
   base-url: http://localhost:8083

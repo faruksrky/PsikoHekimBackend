@@ -73,14 +73,6 @@ public class ProcessServiceImpl implements ProcessService {
         String sessionType = getOptionalString(request.get("sessionType"));
         String sessionFormat = getOptionalString(request.get("sessionFormat"));
 
-        // Randevu bilgisi yoksa varsayılan: 7 gün sonra, INITIAL
-        if (scheduledDate == null) {
-            scheduledDate = LocalDateTime.now().plusDays(7);
-        }
-        if (sessionType == null || sessionType.isBlank()) {
-            sessionType = "INITIAL";
-        }
-
         PatientResponse patient = validateAndGetPatient(patientId);
 
         TherapistAssignment assignment = createAndSaveAssignment(
@@ -104,6 +96,10 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     private void validateAssignmentRequest(Map<String, Object> request) throws InvalidRequestException {
+        Set<String> requiredWithAppointment = new HashSet<>(REQUIRED_FIELDS);
+        requiredWithAppointment.add("scheduledDate");
+        requiredWithAppointment.add("sessionType");
+
         List<String> missing = REQUIRED_FIELDS.stream()
                 .filter(k -> !request.containsKey(k) ||
                         request.get(k) == null ||
@@ -117,7 +113,17 @@ public class ProcessServiceImpl implements ProcessService {
             );
         }
 
-        // scheduledDate ve sessionType opsiyonel - yoksa varsayılan kullanılır
+        List<String> missingAppointment = requiredWithAppointment.stream()
+                .filter(k -> !request.containsKey(k) ||
+                        request.get(k) == null ||
+                        String.valueOf(request.get(k)).trim().isEmpty())
+                .toList();
+        if (!missingAppointment.isEmpty()) {
+            throw new InvalidRequestException(
+                    "Randevu bilgileri eksik",
+                    "Eksik randevu alanları: " + String.join(", ", missingAppointment)
+            );
+        }
     }
 
     private TherapistAssignment createAndSaveAssignment(
@@ -348,7 +354,7 @@ public class ProcessServiceImpl implements ProcessService {
     private Map<String, Object> publishTherapistDecision(TherapistAssignment assignment, String decision) {
         return publishMessage(PublishMessageRequest.builder()
                 .messageName(MESSAGE_NAME)
-                .correlationKey(assignment.getProcessInstanceKey())
+                .correlationKey(String.valueOf(assignment.getPatientId()))
                 .variables(Map.of(VARIABLE_DECISION, decision))
                 .build());
     }
