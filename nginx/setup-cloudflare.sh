@@ -5,8 +5,8 @@
 
 set -e
 
-DOMAIN_AUTH="auth.iyihislerapp.com"
-DOMAIN_API="api.iyihislerapp.com"
+# Script'in bulunduğu dizine geç (nereden çağrılırsa çağrılsın çalışsın)
+cd "$(dirname "$0")"
 
 echo "=== Cloudflare Nginx Kurulumu ==="
 

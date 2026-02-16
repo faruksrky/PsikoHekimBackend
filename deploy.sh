@@ -14,6 +14,14 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
+echo ">>> Nginx config güncelleniyor..."
+if [ -f nginx/setup-cloudflare.sh ]; then
+  (cd nginx && sudo bash setup-cloudflare.sh)
+else
+  echo "UYARI: nginx/setup-cloudflare.sh bulunamadı, Nginx atlanıyor"
+fi
+
+echo ""
 echo ">>> Docker Compose ile build ve başlatılıyor..."
 docker compose -f docker-compose/docker-compose.prod.yml --env-file "$SCRIPT_DIR/.env" up -d --build
 
