@@ -17,12 +17,14 @@ import com_psikohekim.psikohekim_appt.service.BpmnServiceClient;
 import com_psikohekim.psikohekim_appt.service.PatientService;
 import com_psikohekim.psikohekim_appt.service.ProcessService;
 import com_psikohekim.psikohekim_appt.service.TherapistService;
+import com_psikohekim.psikohekim_appt.service.TherapySessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -46,6 +48,7 @@ public class ProcessServiceImpl implements ProcessService {
     private final TherapistPatientRepository therapistPatientRepository;
     private final TherapistRepository therapistRepository;
     private final PatientRepository patientRepository;
+    private final TherapySessionService therapySessionService;
 
     @Override
     public Map<String, Object> startTherapistProcess(String businessKey) throws InvalidRequestException {
@@ -66,11 +69,23 @@ public class ProcessServiceImpl implements ProcessService {
         String processName = String.valueOf(request.get("processName"));
         String description = String.valueOf(request.get("description"));
         String startedBy = String.valueOf(request.get("startedBy"));
+        LocalDateTime scheduledDate = parseDateTime(request.get("scheduledDate"));
+        String sessionType = getOptionalString(request.get("sessionType"));
+        String sessionFormat = getOptionalString(request.get("sessionFormat"));
+
+        // Randevu bilgisi yoksa varsayılan: 7 gün sonra, INITIAL
+        if (scheduledDate == null) {
+            scheduledDate = LocalDateTime.now().plusDays(7);
+        }
+        if (sessionType == null || sessionType.isBlank()) {
+            sessionType = "INITIAL";
+        }
 
         PatientResponse patient = validateAndGetPatient(patientId);
 
         TherapistAssignment assignment = createAndSaveAssignment(
-                patientId, processInstanceKey, therapistId, processName, description, startedBy
+                patientId, processInstanceKey, therapistId, processName, description, startedBy,
+                scheduledDate, sessionType, sessionFormat
         );
 
         return AssignmentResponse.from(assignment, patient);
@@ -101,6 +116,8 @@ public class ProcessServiceImpl implements ProcessService {
                     "Eksik/geçersiz alanlar: " + String.join(", ", missing)
             );
         }
+
+        // scheduledDate ve sessionType opsiyonel - yoksa varsayılan kullanılır
     }
 
     private TherapistAssignment createAndSaveAssignment(
@@ -109,7 +126,10 @@ public class ProcessServiceImpl implements ProcessService {
             String therapistId,
             String processName,
             String description,
-            String startedBy
+            String startedBy,
+            LocalDateTime scheduledDate,
+            String sessionType,
+            String sessionFormat
     ) {
         TherapistAssignment assignment = new TherapistAssignment();
         assignment.setPatientId(patientId);
@@ -118,6 +138,9 @@ public class ProcessServiceImpl implements ProcessService {
         assignment.setProcessName(processName);
         assignment.setDescription(description);
         assignment.setStartedBy(startedBy);
+        assignment.setScheduledDate(scheduledDate);
+        assignment.setSessionType(sessionType);
+        assignment.setSessionFormat(sessionFormat != null ? sessionFormat : "IN_PERSON");
         assignment.setStatus(TherapistAssignment.AssignmentStatus.PENDING);
         assignment.setCreatedAt(LocalDateTime.now());
         assignment.setUpdatedAt(LocalDateTime.now());
@@ -246,7 +269,8 @@ public class ProcessServiceImpl implements ProcessService {
 
     private void handleAcceptance(TherapistAssignment assignment) {
         try {
-            createTherapistPatientRelation(assignment);
+            TherapistPatient relation = createTherapistPatientRelation(assignment);
+            createSessionForAssignment(assignment, relation);
             log.info("Therapist-patient relation created for assignment: {}", assignment.getProcessInstanceKey());
         } catch (Exception e) {
             log.error("Error in handleAcceptance: {}", e.getMessage());
@@ -266,20 +290,65 @@ public class ProcessServiceImpl implements ProcessService {
         }
     }
 
-    private void createTherapistPatientRelation(TherapistAssignment assignment) {
+    private TherapistPatient createTherapistPatientRelation(TherapistAssignment assignment) {
         TherapistPatient relation = new TherapistPatient();
         relation.setTherapist(therapistRepository.findById(Long.valueOf(assignment.getTherapistId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı")));
         relation.setPatient(patientRepository.findById(Long.valueOf(assignment.getPatientId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Danışan bulunamadı")));
         relation.setAssignedAt(LocalDateTime.now());
-        therapistPatientRepository.save(relation);
+        return therapistPatientRepository.save(relation);
+    }
+
+    private void createSessionForAssignment(TherapistAssignment assignment, TherapistPatient relation) {
+        if (assignment.getScheduledDate() == null || assignment.getSessionType() == null) {
+            log.warn("Appointment data missing for assignment: {}", assignment.getProcessInstanceKey());
+            return;
+        }
+
+        com_psikohekim.psikohekim_appt.dto.request.SessionScheduleRequest request =
+                com_psikohekim.psikohekim_appt.dto.request.SessionScheduleRequest.builder()
+                        .assignmentId(relation.getTherapistPatientId())
+                        .scheduledDate(assignment.getScheduledDate())
+                        .sessionType(assignment.getSessionType())
+                        .sessionFormat(assignment.getSessionFormat() != null ? assignment.getSessionFormat() : "IN_PERSON")
+                        .sendNotification(false)
+                        .requirePatientApproval(false)
+                        .build();
+
+        therapySessionService.createSession(request);
+    }
+
+    private LocalDateTime parseDateTime(Object value) throws InvalidRequestException {
+        if (value == null) {
+            return null;
+        }
+        String raw = String.valueOf(value).trim();
+        if (raw.isEmpty()) {
+            return null;
+        }
+        try {
+            if (raw.endsWith("Z") || raw.contains("+")) {
+                return OffsetDateTime.parse(raw).toLocalDateTime();
+            }
+            return LocalDateTime.parse(raw);
+        } catch (Exception e) {
+            throw new InvalidRequestException("Geçersiz randevu tarihi formatı", raw);
+        }
+    }
+
+    private String getOptionalString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        String raw = String.valueOf(value).trim();
+        return raw.isEmpty() ? null : raw;
     }
 
     private Map<String, Object> publishTherapistDecision(TherapistAssignment assignment, String decision) {
         return publishMessage(PublishMessageRequest.builder()
                 .messageName(MESSAGE_NAME)
-                .correlationKey(String.valueOf(assignment.getPatientId()))
+                .correlationKey(assignment.getProcessInstanceKey())
                 .variables(Map.of(VARIABLE_DECISION, decision))
                 .build());
     }

@@ -59,6 +59,13 @@
 			<artifactId>spring-cloud-starter-openfeign</artifactId>
 		</dependency>
 
+		<!-- Zeebe Client (BPMN) -->
+		<dependency>
+			<groupId>io.camunda</groupId>
+			<artifactId>zeebe-client-java</artifactId>
+			<version>8.2.0</version>
+		</dependency>
+
 		<!-- ModelMapper -->
 		<dependency>
 			<groupId>org.modelmapper</groupId>

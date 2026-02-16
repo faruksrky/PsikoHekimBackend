@@ -1,37 +1,35 @@
-# PsikoHekim Docker Compose
+# PsikoHekim - Docker Compose (Proje Bazlı)
 
-**Tek compose** – tüm servisler buradan yönetilir.
+3 proje ayrı ayrı ayağa kaldırılır. Her proje kendi gereksinimleriyle çalışır.
 
-## Hızlı başlangıç
+## Proje Sırası
+
+| # | Proje | Klasör | Gereksinimler |
+|---|-------|--------|---------------|
+| 1 | Keycloak | `1-keycloak/` | PostgreSQL |
+| 2 | PsikoHekim Backend | `2-psikohekim/` | PostgreSQL, Redis, Keycloak URL |
+| 3 | BPMN | `3-bpmn/` | Elasticsearch, Zeebe |
+
+## Proje 1: Keycloak
 
 ```bash
 cd PsikoHekimBackend
-docker compose -f docker-compose/docker-compose.yml --env-file .env up -d
+cp .env.example .env   # .env oluştur, POSTGRES_PASSWORD ve KEYCLOAK_ADMIN_PASSWORD doldur
+docker compose -f docker-compose/1-keycloak/docker-compose.yml --env-file .env up -d
 ```
 
-Bu komut **postgres**, **redis** ve **keycloak** (realm import ile) servislerini başlatır.
+- **PostgreSQL** + **Keycloak** başlar
+- Keycloak: http://localhost:8080
+- Admin: KEYCLOAK_ADMIN / KEYCLOAK_ADMIN_PASSWORD
 
-## Profiller
+## Proje 2: PsikoHekim
 
-| Komut | Servisler |
-|-------|-----------|
-| `docker compose -f docker-compose/docker-compose.yml up -d` | postgres, redis, keycloak |
-| `docker compose -f docker-compose/docker-compose.yml --profile bpmn up -d` | + elasticsearch, zeebe |
-| `docker compose -f docker-compose/docker-compose.yml --profile backend up -d` | + backend |
+Gereksinimler eklenecek (PostgreSQL, Redis, Keycloak URL).
 
-## Realm import
+## Proje 3: BPMN
 
-- **Konum:** `docker-compose/realm-import/psikohekim-realm.json`
-- **İçerik:** psikohekim realm, psikohekim-frontend client, admin/user rolleri, admin kullanıcı (psikohekimofis@gmail.com)
-- **İlk şifre:** `ChangeMe123!` (ilk girişte değiştir)
+Gereksinimler eklenecek (Elasticsearch, Zeebe).
 
-## Portlar (standart dışı - prod güvenliği)
+## Arşiv
 
-| Servis | Port | Not |
-|--------|------|-----|
-| Postgres | 5433 | 5432 yerine |
-| Redis | 6380 | 6379 yerine |
-| Keycloak | 8081 | 8080 yerine |
-| Backend | 8084 | 8083 yerine |
-| Elasticsearch | 9201 | 9200 yerine |
-| Zeebe | 26501, 9601 | |
+Eski monolitik compose dosyaları `archive/` klasöründe.

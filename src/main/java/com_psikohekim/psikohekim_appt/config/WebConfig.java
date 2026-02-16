@@ -40,9 +40,11 @@ public class WebConfig {
                                         "/patient/**",
                                         "/therapist-patient/**",
                                         "/therapy-sessions/**",
+                                        "/pricing/**",
                                         "/api/users/**",
                                         "/process/send-assignment-request",
-                                        "/process/**"
+                                        "/process/**",
+                                        "/api/bpmn/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 );

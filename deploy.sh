@@ -1,37 +1,48 @@
 #!/bin/bash
-# PsikoHekim Backend - VPS Deploy Script
-# Kullanım: ./deploy.sh
-# Önce: .env dosyasını oluştur (cp .env.example .env)
+# PsikoHekim - Proje Bazlı Deploy
+# Her proje ayrı ayağa kaldırılır.
+#
+# Proje 1 (Keycloak): ./deploy.sh keycloak
+# Proje 2 (PsikoHekim): ./deploy.sh psikohekim  (henüz hazır değil)
+# Proje 3 (BPMN): ./deploy.sh bpmn  (henüz hazır değil)
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-if [ ! -f .env ]; then
-  echo "HATA: .env dosyası yok. Önce: cp .env.example .env"
-  echo "Sonra .env içindeki değerleri doldur."
-  exit 1
-fi
+PROJECT="${1:-keycloak}"
 
-echo ">>> Nginx config güncelleniyor..."
-if [ -f nginx/setup-cloudflare.sh ]; then
-  (cd nginx && sudo bash setup-cloudflare.sh)
-else
-  echo "UYARI: nginx/setup-cloudflare.sh bulunamadı, Nginx atlanıyor"
-fi
-
-echo ""
-echo ">>> Docker Compose ile build ve başlatılıyor..."
-docker compose -f docker-compose/docker-compose.prod.yml --env-file "$SCRIPT_DIR/.env" up -d --build
-
-echo ""
-echo ">>> Servisler başlatıldı. Durum:"
-docker compose -f docker-compose/docker-compose.prod.yml --env-file "$SCRIPT_DIR/.env" ps
-
-echo ""
-echo ">>> Logları izlemek için:"
-echo "   docker compose -f docker-compose/docker-compose.prod.yml --env-file .env logs -f backend"
-echo ""
-echo ">>> Durdurmak için:"
-echo "   docker compose -f docker-compose/docker-compose.prod.yml --env-file .env down"
+case "$PROJECT" in
+  keycloak)
+    if [ ! -f .env ]; then
+      echo "HATA: .env dosyası yok. Önce: cp .env.example .env"
+      echo "Sonra POSTGRES_PASSWORD ve KEYCLOAK_ADMIN_PASSWORD doldur."
+      exit 1
+    fi
+    echo ">>> Proje 1: Keycloak başlatılıyor..."
+    docker compose -f docker-compose/1-keycloak/docker-compose.yml --env-file .env up -d
+    echo ""
+    echo ">>> Keycloak: http://localhost:8080"
+    echo ">>> Log: docker compose -f docker-compose/1-keycloak/docker-compose.yml logs -f keycloak"
+    ;;
+  psikohekim)
+    echo ">>> Proje 2: PsikoHekim - henüz hazır değil. Gereksinimler eklenince oluşturulacak."
+    exit 1
+    ;;
+  bpmn)
+    echo ">>> Proje 3: BPMN (Elasticsearch + Zeebe) başlatılıyor..."
+    docker compose -f docker-compose/3-bpmn/docker-compose.yml up -d
+    echo ""
+    echo ">>> Zeebe: localhost:26500"
+    echo ">>> Elasticsearch: localhost:9200"
+    echo ">>> Log: docker compose -f docker-compose/3-bpmn/docker-compose.yml logs -f"
+    ;;
+  *)
+    echo "Kullanım: ./deploy.sh [keycloak|psikohekim|bpmn]"
+    echo "  keycloak  - Keycloak + PostgreSQL (varsayılan)"
+    echo "  psikohekim - Backend (henüz hazır değil)"
+    echo "  bpmn     - BPMN servisleri (henüz hazır değil)"
+    exit 1
+    ;;
+esac
