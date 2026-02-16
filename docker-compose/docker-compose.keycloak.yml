@@ -1,6 +1,5 @@
-# Sadece Keycloak + PostgreSQL - Önce bunu çalıştır
-# Cloudflare -> Nginx:80 -> Keycloak:8080
-# Proje kökünden çalıştır: docker compose -f docker-compose/docker-compose.keycloak.yml up -d
+# DEPRECATED: docker-compose/docker-compose.yml kullanın (tek compose)
+# Sadece Keycloak + PostgreSQL - Cloudflare -> Nginx:80 -> Keycloak:8080
 
 services:
   postgres:

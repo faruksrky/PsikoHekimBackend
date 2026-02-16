@@ -1,5 +1,5 @@
+# DEPRECATED: docker-compose/docker-compose.yml kullanın (tek compose)
 # Boş Keycloak + PostgreSQL - Sıfırdan kurulum
-# Kullanım: docker compose -f docker-compose/docker-compose.keycloak-fresh.yml --env-file .env up -d
 
 services:
   postgres:
@@ -24,7 +24,9 @@ services:
     image: quay.io/keycloak/keycloak:24.0.4
     env_file: ../.env
     container_name: keycloak
-    command: start
+    command: start --import-realm
+    volumes:
+      - /Users/fs648/Desktop/Keycloak/realm-import/psikohekim-realm.json:/opt/keycloak/data/import/psikohekim-realm.json:ro
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}

@@ -15,7 +15,7 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 6380
       password: ${REDIS_PASSWORD:}
 
   security:
@@ -34,7 +34,7 @@ spring:
 zeebe:
   client:
     broker:
-      gatewayAddress: localhost:26500
+      gatewayAddress: localhost:26501
     security:
       plaintext: true
 

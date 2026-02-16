@@ -1,0 +1,135 @@
+# PsikoHekim - Tek Docker Compose (Tüm Ortamlar)
+# Kullanım: cd PsikoHekimBackend && docker compose -f docker-compose/docker-compose.yml --env-file .env up -d
+#
+# Profiller:
+#   (varsayılan)     postgres, redis, keycloak
+#   --profile bpmn   + elasticsearch, zeebe
+#   --profile backend + backend
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: psikohekim-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"  # 5432 yerine 5433 - prod güvenliği (standart port saldırılarından kaçınma)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: psikohekim-redis
+    command: redis-server
+    ports:
+      - "6380:6379"  # 6379 yerine 6380 - prod güvenliği
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.4
+    container_name: psikohekim-keycloak
+    command: start --import-realm
+    env_file: ../.env
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_USERNAME: ${POSTGRES_USER:-postgres}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-localhost}
+      KC_HOSTNAME_PORT: ${KEYCLOAK_HOSTNAME_PORT:-8081}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+    volumes:
+      - ./realm-import/psikohekim-realm.json:/opt/keycloak/data/import/psikohekim-realm.json:ro
+    ports:
+      - "8081:8080"  # 8080 yerine 8081 - prod güvenliği
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: psikohekim-elasticsearch
+    profiles:
+      - bpmn
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx1g
+    ports:
+      - "9201:9200"  # 9200 yerine 9201 - prod güvenliği
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  zeebe:
+    image: camunda/zeebe:8.2.0
+    container_name: psikohekim-zeebe
+    profiles:
+      - bpmn
+    environment:
+      - ZEEBE_BROKER_EXPORTERS_OPENSEARCH_CLASSNAME=io.camunda.zeebe.exporter.opensearch.OpensearchExporter
+      - ZEEBE_BROKER_EXPORTERS_OPENSEARCH_ARGS_URL=http://elasticsearch:9200
+      - ZEEBE_BROKER_EXPORTERS_OPENSEARCH_ARGS_BULK_DELAY=5
+      - ZEEBE_BROKER_EXPORTERS_OPENSEARCH_ARGS_INDEX_PREFIX=zeebe-record
+    ports:
+      - "26501:26500"  # standart dışı port - prod güvenliği
+      - "9601:9600"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: psikohekim-backend
+    profiles:
+      - backend
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8083
+      DB_URL: jdbc:postgresql://postgres:5432/psikohekim
+      DB_USERNAME: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/psikohekim
+    ports:
+      - "8084:8083"  # 8083 yerine 8084 - prod güvenliği
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  esdata:
