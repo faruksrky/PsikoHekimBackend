@@ -34,7 +34,9 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
     container_name: psikohekim-keycloak
-    command: start
+    command: start --import-realm
+    volumes:
+      - ./realm-import/psikohekim-realm.json:/opt/keycloak/data/import/psikohekim-realm.json:ro
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}

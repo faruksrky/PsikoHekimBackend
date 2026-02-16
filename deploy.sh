@@ -23,7 +23,7 @@ docker compose -f docker-compose/docker-compose.prod.yml --env-file "$SCRIPT_DIR
 
 echo ""
 echo ">>> Logları izlemek için:"
-echo "   docker compose -f docker-compose/docker-compose.prod.yml logs -f backend"
+echo "   docker compose -f docker-compose/docker-compose.prod.yml --env-file .env logs -f backend"
 echo ""
 echo ">>> Durdurmak için:"
-echo "   docker compose -f docker-compose/docker-compose.prod.yml down"
+echo "   docker compose -f docker-compose/docker-compose.prod.yml --env-file .env down"
