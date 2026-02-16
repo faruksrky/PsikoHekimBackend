@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   keycloak:
-    image: quay.io/keycloak/keycloak:25.0.6
+    image: quay.io/keycloak/keycloak:26.0.0
     container_name: psikohekim-keycloak
     command: start
     # Realm import: 502 varsa geçici kapalı. Açmak için: command: start --import-realm
@@ -45,9 +45,8 @@ services:
       KC_DB_USERNAME: ${POSTGRES_USER:-postgres}
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
-      # Keycloak 25 - hostname v1 (daha stabil prod kurulumu)
-      KC_HOSTNAME: ${KEYCLOAK_HOSTNAME:-auth.iyihislerapp.com}
-      KC_HOSTNAME_PORT: "443"
+      # Keycloak 26 - hostname v2 (veritabanı 26'ya migrate edilmişti)
+      KC_HOSTNAME: https://${KEYCLOAK_HOSTNAME:-auth.iyihislerapp.com}
       KC_PROXY_HEADERS: "xforwarded"
       KC_HTTP_ENABLED: "true"
     ports:
