@@ -32,6 +32,7 @@ public class WebConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers(
+                                        "/actuator/**",
                                         "/api/google-calendar/**",
                                         "/api/calendar/**",
                                         "/favicon.ico",
