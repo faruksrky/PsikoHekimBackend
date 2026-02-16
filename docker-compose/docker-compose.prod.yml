@@ -34,9 +34,9 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:25.0.6
     container_name: psikohekim-keycloak
-    command: start --import-realm
-    volumes:
-      - ./realm-import/psikohekim-realm.json:/opt/keycloak/data/import/psikohekim-realm.json:ro
+    command: start
+    # Realm import: 502 varsa geçici kapalı. Açmak için: command: start --import-realm
+    # volumes: - ./realm-import/psikohekim-realm.json:/opt/keycloak/data/import/psikohekim-realm.json:ro
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -51,7 +51,7 @@ services:
       KC_PROXY_HEADERS: "xforwarded"
       KC_HTTP_ENABLED: "true"
     ports:
-      - "8081:8080"  # standart 8080 yerine - güvenlik
+      - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -95,7 +95,7 @@ services:
       retries: 5
       start_period: 90s
     ports:
-      - "8084:8083"  # standart 8083 yerine - güvenlik
+      - "8083:8083"
     depends_on:
       postgres:
         condition: service_healthy
