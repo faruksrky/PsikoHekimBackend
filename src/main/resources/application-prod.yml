@@ -44,7 +44,7 @@ zeebe:
 
 services:
   bpmn:
-    url: ${BPMN_SERVICE_URL:http://bpmn:8082}
+    url: ${BPMN_SERVICE_URL:https://bpmn.iyihislerapp.com}
 
 webhook:
   base-url: ${WEBHOOK_BASE_URL}
