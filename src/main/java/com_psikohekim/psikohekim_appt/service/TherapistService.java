@@ -28,9 +28,9 @@ public interface TherapistService {
      TherapistResponse addTherapist(TherapistRequest therapistRequest) throws ConflictException, InvalidRequestException;
 
      /**
-      * Tüm danışmanları getirme
+      * Tüm danışmanları getirme (boş liste dönebilir)
       */
-     Map<String, List<TherapistResponse>> getTherapists() throws ResourceNotFoundException;
+     Map<String, List<TherapistResponse>> getTherapists();
 
      /**
       * Danışman güncelleme

@@ -37,7 +37,7 @@ public class TherapistController {
     }
 
     @GetMapping("/all")
-    public Map<String, List<TherapistResponse>> getTherapists() throws ResourceNotFoundException {
+    public Map<String, List<TherapistResponse>> getTherapists() {
         return therapistService.getTherapists();
     }
 

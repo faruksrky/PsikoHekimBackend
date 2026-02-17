@@ -13,6 +13,7 @@ echo "=== Cloudflare Nginx Kurulumu ==="
 # Cloudflare config'leri kopyala
 sudo cp auth.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/auth.iyihislerapp.com
 sudo cp api.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/api.iyihislerapp.com
+sudo cp bpmn.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/bpmn.iyihislerapp.com
 
 # Eski SSL config varsa devre dışı bırak (opsiyonel)
 # sudo rm -f /etc/nginx/sites-enabled/auth.iyihislerapp.com
@@ -21,6 +22,7 @@ sudo cp api.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/api.iyih
 # Symlink'leri oluştur
 sudo ln -sf /etc/nginx/sites-available/auth.iyihislerapp.com /etc/nginx/sites-enabled/
 sudo ln -sf /etc/nginx/sites-available/api.iyihislerapp.com /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/bpmn.iyihislerapp.com /etc/nginx/sites-enabled/
 
 # Default site'ı devre dışı bırak (conflict olmasın)
 sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
@@ -31,7 +33,7 @@ sudo nginx -t && sudo systemctl reload nginx
 echo ""
 echo "=== Kurulum tamamlandı ==="
 echo "Cloudflare Dashboard kontrol listesi:"
-echo "  1. DNS: auth.iyihislerapp.com ve api.iyihislerapp.com -> Proxy ON (turuncu bulut)"
+echo "  1. DNS: auth.iyihislerapp.com, api.iyihislerapp.com, bpmn.iyihislerapp.com -> Proxy ON (turuncu bulut)"
 echo "  2. SSL/TLS -> Overview -> Flexible"
 echo "  3. SSL/TLS -> Edge Certificates -> Always Use HTTPS: ON"
 echo ""

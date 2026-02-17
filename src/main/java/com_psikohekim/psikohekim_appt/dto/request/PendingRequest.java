@@ -19,6 +19,8 @@ public class PendingRequest {
     private String therapistId;
     private TherapistAssignment.AssignmentStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime scheduledDate;
+    private String sessionType;
     private String description;
     private String startedBy;
 
@@ -30,6 +32,8 @@ public class PendingRequest {
                 .therapistId(assignment.getTherapistId())
                 .status(assignment.getStatus())
                 .createdAt(assignment.getCreatedAt())
+                .scheduledDate(assignment.getScheduledDate())
+                .sessionType(assignment.getSessionType())
                 .description(assignment.getDescription())
                 .startedBy(assignment.getStartedBy())
                 .build();

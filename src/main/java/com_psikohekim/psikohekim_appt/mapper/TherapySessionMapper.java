@@ -57,6 +57,9 @@ public class TherapySessionMapper {
                     .therapistEducation(therapistEntity.getTherapistEducation())
                     .therapistCertifications(therapistEntity.getTherapistCertifications())
                     .therapistAppointmentFee(therapistEntity.getTherapistAppointmentFee())
+                    .therapistAppointmentFeeCurrency(therapistEntity.getTherapistAppointmentFeeCurrency())
+                    .therapistConsultantFee(therapistEntity.getTherapistConsultantFee())
+                    .therapistConsultantFeeCurrency(therapistEntity.getTherapistConsultantFeeCurrency())
                     .therapistUniversity(therapistEntity.getTherapistUniversity())
                     .therapistRating(therapistEntity.getTherapistRating())
                     .build();
@@ -89,6 +92,7 @@ public class TherapySessionMapper {
 
                 // Financial info
                 .sessionFee(session.getSessionFee())
+                .sessionFeeCurrency(session.getSessionFeeCurrency())
                 .paymentStatus(session.getPaymentStatus())
                 .paymentMethod(session.getPaymentMethod())
 

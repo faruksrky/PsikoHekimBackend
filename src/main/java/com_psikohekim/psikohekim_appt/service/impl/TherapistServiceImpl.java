@@ -41,6 +41,14 @@ public class TherapistServiceImpl implements TherapistService {
         // 3. Dönüşüm ve rating hesaplama
         Therapist therapist = convertToEntity(therapistReq);
         therapist.setTherapistRating(calculateInitialRating(therapistReq.getTherapistYearsOfExperience()));
+        
+        // Para birimi default değerleri
+        if (therapist.getTherapistAppointmentFeeCurrency() == null || therapist.getTherapistAppointmentFeeCurrency().isEmpty()) {
+            therapist.setTherapistAppointmentFeeCurrency("TRY");
+        }
+        if (therapist.getTherapistConsultantFeeCurrency() == null || therapist.getTherapistConsultantFeeCurrency().isEmpty()) {
+            therapist.setTherapistConsultantFeeCurrency("TRY");
+        }
 
         // 4. Kaydetme ve response dönüşümü
         return saveAndConvertToResponse(therapist);
@@ -50,7 +58,7 @@ public class TherapistServiceImpl implements TherapistService {
     public Map<String, List<TherapistResponse>> getTherapists() {
         List<Therapist> therapists = therapistRepository.findAll();
         if (therapists.isEmpty()) {
-            throw new ResourceNotFoundException("Danışman bulunamadı!");
+            return Collections.singletonMap("therapists", Collections.emptyList());
         }
 
         List<TherapistResponse> responses = therapists.stream()

@@ -12,4 +12,5 @@ public interface TherapistAssignmentRepository extends JpaRepository<TherapistAs
     Optional<TherapistAssignment> findByProcessInstanceKey (String processInstanceKey);
     boolean existsByTherapistIdAndStatus(String therapistId, TherapistAssignment.AssignmentStatus status);
     List<TherapistAssignment> findAllByStatus(TherapistAssignment.AssignmentStatus status);
+    boolean existsByPatientIdAndStatus(String patientId, TherapistAssignment.AssignmentStatus status);
 }

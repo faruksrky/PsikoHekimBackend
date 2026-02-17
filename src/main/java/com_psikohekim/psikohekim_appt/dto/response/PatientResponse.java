@@ -21,6 +21,7 @@ public class PatientResponse {
     private String patientCity;
     private String patientGender;
     private Long therapistId;
+    private String assignmentStatus;
     private List<TherapistResponse> therapist;
     private String patientReference;
 

@@ -6,7 +6,9 @@ import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
 import com_psikohekim.psikohekim_appt.model.Patient;
 import com_psikohekim.psikohekim_appt.model.TherapistPatient;
 import com_psikohekim.psikohekim_appt.enums.AssignmentStatus;
+import com_psikohekim.psikohekim_appt.model.TherapistAssignment;
 import com_psikohekim.psikohekim_appt.repository.PatientRepository;
+import com_psikohekim.psikohekim_appt.repository.TherapistAssignmentRepository;
 import com_psikohekim.psikohekim_appt.repository.TherapistPatientRepository;
 import com_psikohekim.psikohekim_appt.service.PatientService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final TherapistPatientRepository therapistPatientRepository;
+    private final TherapistAssignmentRepository therapistAssignmentRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -66,19 +69,8 @@ public class PatientServiceImpl implements PatientService {
         List<PatientResponse> patientResponses = patients.stream()
                 .map(patient -> {
                     PatientResponse patientResponse = modelMapper.map(patient, PatientResponse.class);
-                    
-                    // TherapistPatient tablosunda aktif atama var mı kontrol et
-                    List<TherapistPatient> assignments = therapistPatientRepository.findByPatientAndAssignmentStatus(
-                        patient, AssignmentStatus.ACTIVE);
-                    
-                    // Eğer aktif atama varsa, therapistId'yi set et
-                    if (!assignments.isEmpty()) {
-                        TherapistPatient activeAssignment = assignments.get(0);
-                        patientResponse.setTherapistId(activeAssignment.getTherapist().getTherapistId());
-                    } else {
-                        // Atanmamış için null set et
-                        patientResponse.setTherapistId(null);
-                    }
+
+                    applyAssignmentStatus(patient, patientResponse);
                     
                     return patientResponse;
                 })
@@ -94,7 +86,9 @@ public class PatientServiceImpl implements PatientService {
             Patient patient = patientRepository.findById(patientId)
                     .orElseThrow(() -> new ResourceNotFoundException("Patient not found with ID: " + patientId));
 
-            return modelMapper.map(patient, PatientResponse.class);
+            PatientResponse response = modelMapper.map(patient, PatientResponse.class);
+            applyAssignmentStatus(patient, response);
+            return response;
         } catch (Exception ex) {
             throw new RuntimeException("Error getting patient: " + ex.getMessage(), ex);
         }
@@ -120,11 +114,44 @@ public class PatientServiceImpl implements PatientService {
                             .patientAge(patient.getPatientAge())
                             .patientEmail(patient.getPatientEmail())
                             .patientPhoneNumber(patient.getPatientPhoneNumber())
+                            .assignmentStatus(determineAssignmentStatus(patient))
                             .build())
                     .collect(Collectors.toList());
         } catch (Exception e) {
             throw new RuntimeException("Hasta bilgileri alınırken bir hata oluştu", e);
         }
+    }
+
+    private void applyAssignmentStatus(Patient patient, PatientResponse response) {
+        List<TherapistPatient> assignments = therapistPatientRepository.findByPatientAndAssignmentStatus(
+                patient, AssignmentStatus.ACTIVE);
+
+        if (!assignments.isEmpty()) {
+            TherapistPatient activeAssignment = assignments.get(0);
+            response.setTherapistId(activeAssignment.getTherapist().getTherapistId());
+            response.setAssignmentStatus("ASSIGNED");
+            return;
+        }
+
+        boolean hasPending = therapistAssignmentRepository.existsByPatientIdAndStatus(
+                String.valueOf(patient.getPatientId()),
+                TherapistAssignment.AssignmentStatus.PENDING
+        );
+        response.setTherapistId(null);
+        response.setAssignmentStatus(hasPending ? "PENDING" : "UNASSIGNED");
+    }
+
+    private String determineAssignmentStatus(Patient patient) {
+        List<TherapistPatient> assignments = therapistPatientRepository.findByPatientAndAssignmentStatus(
+                patient, AssignmentStatus.ACTIVE);
+        if (!assignments.isEmpty()) {
+            return "ASSIGNED";
+        }
+        boolean hasPending = therapistAssignmentRepository.existsByPatientIdAndStatus(
+                String.valueOf(patient.getPatientId()),
+                TherapistAssignment.AssignmentStatus.PENDING
+        );
+        return hasPending ? "PENDING" : "UNASSIGNED";
     }
 
 }

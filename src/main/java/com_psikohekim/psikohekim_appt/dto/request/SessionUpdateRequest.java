@@ -17,6 +17,7 @@ public class SessionUpdateRequest {
 
     // Session details
     private BigDecimal sessionFee;
+    private String sessionFeeCurrency;
     private String sessionType;
     private String sessionFormat;
 

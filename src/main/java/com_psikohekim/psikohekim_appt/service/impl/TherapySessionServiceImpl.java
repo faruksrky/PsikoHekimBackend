@@ -9,6 +9,7 @@ import com_psikohekim.psikohekim_appt.model.TherapySession;
 import com_psikohekim.psikohekim_appt.model.TherapistPatient;
 import com_psikohekim.psikohekim_appt.repository.TherapySessionRepository;
 import com_psikohekim.psikohekim_appt.repository.TherapistPatientRepository;
+import com_psikohekim.psikohekim_appt.service.PricingService;
 import com_psikohekim.psikohekim_appt.service.TherapySessionService;
 import com_psikohekim.psikohekim_appt.service.WhatsAppService;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     private final TherapistPatientRepository assignmentRepository;
     private final TherapySessionMapper sessionMapper;
     private final WhatsAppService whatsAppService;
+    private final PricingService pricingService;
 
     // ========== BASIC CRUD ==========
 
@@ -71,6 +73,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         session.setPatientId(assignment.getPatient().getPatientId());
         session.setScheduledDate(request.getScheduledDate());
         session.setSessionFee(request.getSessionFee());
+        session.setSessionFeeCurrency(request.getSessionFeeCurrency() != null ? request.getSessionFeeCurrency() : "TRY");
         session.setSessionType(request.getSessionType());
         session.setSessionFormat(request.getSessionFormat());
         session.setSessionNotes(request.getNotes());
@@ -89,6 +92,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         session.setUpdatedBy("SYSTEM");
 
         TherapySession savedSession = sessionRepository.save(session);
+        pricingService.ensureSplitPricing(savedSession);
         log.info("Session created successfully: {}", savedSession.getTherapySessionId());
 
         // WhatsApp/Twilio bildirimi gönder
@@ -246,6 +250,9 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         updateSessionFields(session, request);
 
         TherapySession updatedSession = sessionRepository.save(session);
+        if (request.getPaymentStatus() != null) {
+            pricingService.updateClientPaymentStatus(updatedSession.getTherapySessionId(), request.getPaymentStatus());
+        }
         log.info("Session updated successfully: {}", sessionId);
 
         return sessionMapper.toResponseDto(updatedSession);
@@ -701,6 +708,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
                     .assignment(assignment)
                     .scheduledDate(currentDate)
                     .sessionFee(sessionFee)
+                    .sessionFeeCurrency("TRY") // Default currency
                     .sessionType("REGULAR")
                     .sessionFormat("IN_PERSON")
                     .status(SessionStatus.SCHEDULED)
@@ -747,6 +755,9 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         // Session details
         if (request.getSessionFee() != null) {
             session.setSessionFee(request.getSessionFee());
+        }
+        if (request.getSessionFeeCurrency() != null) {
+            session.setSessionFeeCurrency(request.getSessionFeeCurrency());
         }
         if (request.getSessionType() != null) {
             session.setSessionType(request.getSessionType());
@@ -796,5 +807,8 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         }
 
         session.setUpdatedBy("SYSTEM"); // TODO: Get from security context
+        if (request.getPaymentStatus() != null && session.getTherapySessionId() != null) {
+            pricingService.updateClientPaymentStatus(session.getTherapySessionId(), request.getPaymentStatus());
+        }
     }
 }

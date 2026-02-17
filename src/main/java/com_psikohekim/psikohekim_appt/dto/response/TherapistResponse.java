@@ -23,6 +23,9 @@ public class TherapistResponse {
     private String therapistEducation;
     private String therapistCertifications;
     private BigDecimal therapistAppointmentFee;
+    private String therapistAppointmentFeeCurrency;
+    private BigDecimal therapistConsultantFee;
+    private String therapistConsultantFeeCurrency;
     private String therapistUniversity;
     private int therapistRating;
 }

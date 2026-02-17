@@ -84,6 +84,9 @@ public class TherapySession {
     @Column(name = "session_fee", precision = 10, scale = 2)
     private BigDecimal sessionFee;
 
+    @Column(name = "session_fee_currency", length = 3)
+    private String sessionFeeCurrency = "TRY";
+
     @Column(name = "payment_status") // PENDING, PAID, PARTIAL, WAIVED
     private String paymentStatus = "PENDING";
 

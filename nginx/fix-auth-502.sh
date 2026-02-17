@@ -27,8 +27,10 @@ echo ""
 echo "=== 5. Nginx kurulumu yapılıyor... ==="
 sudo cp auth.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/auth.iyihislerapp.com
 sudo cp api.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/api.iyihislerapp.com
+sudo cp bpmn.iyihislerapp.com.cloudflare.conf /etc/nginx/sites-available/bpmn.iyihislerapp.com
 sudo ln -sf /etc/nginx/sites-available/auth.iyihislerapp.com /etc/nginx/sites-enabled/
 sudo ln -sf /etc/nginx/sites-available/api.iyihislerapp.com /etc/nginx/sites-enabled/
+sudo ln -sf /etc/nginx/sites-available/bpmn.iyihislerapp.com /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default 2>/dev/null || true
 
 echo ""

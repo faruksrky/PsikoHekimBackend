@@ -48,6 +48,14 @@ public class Therapist {
     // Finansal bilgiler
     private BigDecimal therapistAppointmentFee;
     
+    @Column(name = "therapist_appointment_fee_currency", length = 3)
+    private String therapistAppointmentFeeCurrency = "TRY";
+    
+    private BigDecimal therapistConsultantFee;
+    
+    @Column(name = "therapist_consultant_fee_currency", length = 3)
+    private String therapistConsultantFeeCurrency = "TRY";
+    
     @Column(name = "therapistRating", nullable = false, columnDefinition = "integer default 30")
     private int therapistRating = 30;
 }

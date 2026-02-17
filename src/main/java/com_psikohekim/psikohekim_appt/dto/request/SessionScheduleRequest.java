@@ -23,6 +23,7 @@ public class SessionScheduleRequest {
     private LocalDateTime scheduledDate;
 
     private BigDecimal sessionFee;
+    private String sessionFeeCurrency;
     private String sessionType; // INITIAL, REGULAR, FOLLOWUP, FINAL
     private String sessionFormat; // IN_PERSON, ONLINE, PHONE
     private String notes;

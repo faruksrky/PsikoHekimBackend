@@ -20,6 +20,9 @@ public class AssignmentResponse {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private LocalDateTime scheduledDate;
+    private String sessionType;
+    private String sessionFormat;
     private PatientResponse patientInfo;
 
     public static AssignmentResponse from(TherapistAssignment assignment, PatientResponse patient) {
@@ -33,6 +36,9 @@ public class AssignmentResponse {
                 .status(assignment.getStatus().toString())
                 .createdAt(assignment.getCreatedAt())
                 .updatedAt(assignment.getUpdatedAt())
+                .scheduledDate(assignment.getScheduledDate())
+                .sessionType(assignment.getSessionType())
+                .sessionFormat(assignment.getSessionFormat())
                 .patientInfo(patient)
                 .build();
     }

@@ -44,6 +44,7 @@ public class SessionResponse {
 
     // Finansal
     private BigDecimal sessionFee;
+    private String sessionFeeCurrency;
     @Builder.Default
     private String paymentStatus = "PENDING";
     private String paymentMethod;
