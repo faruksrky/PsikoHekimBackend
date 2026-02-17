@@ -52,8 +52,8 @@ public class KeycloakController {
             return ResponseEntity.ok(response.getBody());
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             log.warn("Keycloak token error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            Object body = parseJsonOrString(e.getResponseBodyAsString());
-            return ResponseEntity.status(e.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(body);
+            Object errorBody = parseJsonOrString(e.getResponseBodyAsString());
+            return ResponseEntity.status(e.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         } catch (Exception e) {
             log.error("Keycloak token error: {}", e.getMessage());
             throw e;
@@ -76,8 +76,8 @@ public class KeycloakController {
             return ResponseEntity.ok(response.getBody());
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             log.warn("Keycloak userInfo error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
-            Object body = parseJsonOrString(e.getResponseBodyAsString());
-            return ResponseEntity.status(e.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(body);
+            Object errorBody = parseJsonOrString(e.getResponseBodyAsString());
+            return ResponseEntity.status(e.getStatusCode()).contentType(MediaType.APPLICATION_JSON).body(errorBody);
         } catch (Exception e) {
             log.error("Keycloak userInfo error: {}", e.getMessage());
             throw e;
