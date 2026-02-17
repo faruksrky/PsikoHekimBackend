@@ -43,6 +43,7 @@ public class WebConfig {
                                         "/therapy-sessions/**",
                                         "/pricing/**",
                                         "/api/users/**",
+                                        "/keycloak/**",
                                         "/process/send-assignment-request",
                                         "/process/**"
                                 ).permitAll()
@@ -57,9 +58,11 @@ public class WebConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3031",  // Local development
-                "https://*.psikohekimfrontend.pages.dev", // Cloudflare Pages Production
-                "https://*.iyihislerapp.com"
-        ));// Cloudflare preview deployments (opsiyonel)
+                "https://*.psikohekimfrontend.pages.dev", // Cloudflare Pages
+                "https://*.iyihislerapp.com",
+                "https://iyihislerapp.com",
+                "https://www.iyihislerapp.com"
+        )); // Cloudflare Pages + iyihislerapp.com
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);

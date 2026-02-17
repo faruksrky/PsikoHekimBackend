@@ -30,12 +30,14 @@
       "redirectUris": [
         "https://iyihislerapp.com/*",
         "https://www.iyihislerapp.com/*",
+        "https://psikohekimfrontend.pages.dev/*",
         "http://localhost:5173/*",
         "http://localhost:3000/*"
       ],
       "webOrigins": [
         "https://iyihislerapp.com",
         "https://www.iyihislerapp.com",
+        "https://psikohekimfrontend.pages.dev",
         "http://localhost:5173",
         "http://localhost:3000"
       ]
