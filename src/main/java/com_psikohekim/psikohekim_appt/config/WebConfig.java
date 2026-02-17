@@ -3,6 +3,7 @@ package com_psikohekim.psikohekim_appt.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,7 +25,23 @@ import java.util.List;
 @Configuration
 public class WebConfig {
 
+    /**
+     * /keycloak/** için ayrı chain - OAuth2 JWT doğrulaması OLMADAN.
+     * Login isteği token olmadan geldiği için 403 engelini kaldırır.
+     */
     @Bean
+    @Order(1)
+    public SecurityFilterChain keycloakSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/keycloak/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+        return http.build();
+    }
+
+    @Bean
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
