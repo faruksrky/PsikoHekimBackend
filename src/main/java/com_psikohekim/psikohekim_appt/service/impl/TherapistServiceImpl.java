@@ -55,8 +55,15 @@ public class TherapistServiceImpl implements TherapistService {
     }
 
     @Override
-    public Map<String, List<TherapistResponse>> getTherapists() {
-        List<Therapist> therapists = therapistRepository.findAll();
+    public Map<String, List<TherapistResponse>> getTherapists(String email) {
+        List<Therapist> therapists;
+        if (email != null && !email.isBlank()) {
+            therapists = therapistRepository.findByTherapistEmail(email)
+                    .map(List::of)
+                    .orElse(Collections.emptyList());
+        } else {
+            therapists = therapistRepository.findAll();
+        }
         if (therapists.isEmpty()) {
             return Collections.singletonMap("therapists", Collections.emptyList());
         }

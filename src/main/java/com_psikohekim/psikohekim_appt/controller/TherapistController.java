@@ -36,9 +36,14 @@ public class TherapistController {
         return therapistService.addTherapist(therapist);
     }
 
+    /**
+     * Admin: tüm terapistler. Terapist (non-admin): email ile sadece kendi kaydı.
+     * @param email Opsiyonel - verilirse sadece bu email'e ait terapist döner (terapist kendi bilgisi için)
+     */
     @GetMapping("/all")
-    public Map<String, List<TherapistResponse>> getTherapists() {
-        return therapistService.getTherapists();
+    public Map<String, List<TherapistResponse>> getTherapists(
+            @RequestParam(required = false) String email) {
+        return therapistService.getTherapists(email);
     }
 
     @GetMapping("/psychiatry_areas")

@@ -34,8 +34,16 @@ public class ProcessController {
         return ResponseEntity.ok(processService.sendAssignmentRequest(request));
     }
 
+    /**
+     * Admin: therapistId verilmezse tüm bekleyen atamalar.
+     * Terapist: therapistId ile sadece kendi bekleyen atamaları.
+     */
     @GetMapping("/inbox/pending")
-    public ResponseEntity<List<PendingRequest>> getPendingRequests(@RequestParam Long therapistId) throws InvalidRequestException {
+    public ResponseEntity<List<PendingRequest>> getPendingRequests(
+            @RequestParam(required = false) Long therapistId) throws InvalidRequestException {
+        if (therapistId == null) {
+            return ResponseEntity.ok(processService.getIncompleteAssignments());
+        }
         return ResponseEntity.ok(processService.getPendingRequests(therapistId));
     }
 

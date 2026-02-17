@@ -28,9 +28,10 @@ public interface TherapistService {
      TherapistResponse addTherapist(TherapistRequest therapistRequest) throws ConflictException, InvalidRequestException;
 
      /**
-      * Tüm danışmanları getirme (boş liste dönebilir)
+      * Tüm danışmanları getirme. email verilirse sadece o email'e ait terapist döner.
+      * @param email Opsiyonel - terapist kendi bilgisi için kullanır
       */
-     Map<String, List<TherapistResponse>> getTherapists();
+     Map<String, List<TherapistResponse>> getTherapists(String email);
 
      /**
       * Danışman güncelleme
