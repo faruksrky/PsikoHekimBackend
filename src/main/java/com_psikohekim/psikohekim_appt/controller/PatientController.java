@@ -34,7 +34,7 @@ public class PatientController {
     }
 
     @GetMapping("/all")
-    public Map<String, List<PatientResponse>> getPatients() throws ResourceNotFoundException {
+    public Map<String, List<PatientResponse>> getPatients() {
         return patientService.getPatients();
     }
 

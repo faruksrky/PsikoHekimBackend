@@ -60,10 +60,12 @@ public class PatientServiceImpl implements PatientService {
     }
 
     @Override
-    public Map<String, List<PatientResponse>> getPatients() throws ResourceNotFoundException {
+    public Map<String, List<PatientResponse>> getPatients() {
         List<Patient> patients = patientRepository.findAll();
         if (patients.isEmpty()) {
-            throw new ResourceNotFoundException("Danışan bulunamadı!");
+            Map<String, List<PatientResponse>> empty = new HashMap<>();
+            empty.put("patients", List.of());
+            return empty;
         }
 
         List<PatientResponse> patientResponses = patients.stream()

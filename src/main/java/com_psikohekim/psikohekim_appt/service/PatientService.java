@@ -13,7 +13,7 @@ public interface PatientService {
 
     PatientResponse addPatient(PatientRequest patient)  throws ConflictException, InvalidRequestException;
     PatientResponse updatePatient(Long patientId, PatientRequest patient) throws ConflictException, InvalidRequestException, ResourceNotFoundException;
-    Map<String, List<PatientResponse>> getPatients() throws ResourceNotFoundException;
+    Map<String, List<PatientResponse>> getPatients();
     PatientResponse getPatient(Long patientId) throws ResourceNotFoundException;
     List<PatientResponse> getPatientsByIds(List<Long> patientIds);
 }
