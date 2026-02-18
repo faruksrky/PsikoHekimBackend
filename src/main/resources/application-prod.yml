@@ -1,9 +1,6 @@
 server:
   port: ${SERVER_PORT:8083}
 
-keycloak:
-  auth-server-url: ${KEYCLOAK_AUTH_SERVER_URL:https://auth.iyihislerapp.com}
-
 spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://postgres:5432/psikohekim}
