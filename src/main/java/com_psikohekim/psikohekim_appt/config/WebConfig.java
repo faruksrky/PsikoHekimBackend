@@ -3,7 +3,6 @@ package com_psikohekim.psikohekim_appt.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,22 +25,10 @@ import java.util.List;
 public class WebConfig {
 
     /**
-     * /keycloak/** için ayrı chain - OAuth2 JWT doğrulaması OLMADAN.
-     * Login isteği token olmadan geldiği için 403 engelini kaldırır.
+     * Keycloak istekleri artık Keycloak projesine (auth.iyihislerapp.com) gidiyor.
+     * PsikoHekim Backend sadece patient, therapist, therapy-session vb. için kullanılıyor.
      */
     @Bean
-    @Order(1)
-    public SecurityFilterChain keycloakSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/keycloak/**")
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
-        return http.build();
-    }
-
-    @Bean
-    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -59,8 +46,6 @@ public class WebConfig {
                                         "/therapist-patient/**",
                                         "/therapy-sessions/**",
                                         "/pricing/**",
-                                        "/api/users/**",
-                                        "/keycloak/**",
                                         "/process/send-assignment-request",
                                         "/process/**"
                                 ).permitAll()
