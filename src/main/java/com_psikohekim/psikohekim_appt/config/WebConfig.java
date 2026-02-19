@@ -60,7 +60,8 @@ public class WebConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:3031",  // Local development
-                "https://*.psikohekimfrontend.pages.dev", // Cloudflare Pages
+                "https://psikohekimfrontend.pages.dev",    // Cloudflare Pages production
+                "https://*.psikohekimfrontend.pages.dev",  // Cloudflare Pages preview
                 "https://*.iyihislerapp.com",
                 "https://iyihislerapp.com",
                 "https://www.iyihislerapp.com"
