@@ -21,6 +21,10 @@ case "$PROJECT" in
       exit 1
     fi
     echo ">>> Proje 1: Keycloak başlatılıyor..."
+    # Önce mevcut container'ları kaldır (isim çakışması önlenir)
+    docker compose -f docker-compose/1-keycloak/docker-compose.yml --env-file .env down 2>/dev/null || true
+    # Eski compose'dan kalan container varsa zorla kaldır
+    docker rm -f keycloak-postgres keycloak 2>/dev/null || true
     docker compose -f docker-compose/1-keycloak/docker-compose.yml --env-file .env up -d
     echo ""
     echo ">>> Keycloak: http://localhost:8080"
