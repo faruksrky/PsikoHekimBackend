@@ -47,7 +47,8 @@ public class WebConfig {
                                         "/therapy-sessions/**",
                                         "/pricing/**",
                                         "/process/send-assignment-request",
-                                        "/process/**"
+                                        "/process/**",
+                                        "/api/bpmn/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 );
