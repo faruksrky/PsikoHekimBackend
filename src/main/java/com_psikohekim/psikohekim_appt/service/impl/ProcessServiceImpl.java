@@ -55,7 +55,7 @@ public class ProcessServiceImpl implements ProcessService {
         if (businessKey == null || businessKey.trim().isEmpty()) {
             throw new InvalidRequestException("Business key must not be null or empty", "");
         }
-        return bpmnServiceClient.startProcess(Map.of("businessKey", businessKey));
+        return bpmnServiceClient.startProcess(Map.of("businessKey", (Object) businessKey));
     }
 
     @Override
@@ -602,12 +602,12 @@ public class ProcessServiceImpl implements ProcessService {
         // BPMN'de yeni süreç başlat
         try {
             Map<String, Object> processResult = bpmnServiceClient.startProcess(Map.of(
-                "businessKey", "restart-" + assignmentId,
-                "patientId", assignment.getPatientId(),
-                "therapistId", assignment.getTherapistId(),
-                "processName", assignment.getProcessName(),
-                "description", "Yeniden başlatılan atama: " + assignment.getDescription(),
-                "startedBy", "SYSTEM_RESTART"
+                "businessKey", (Object) ("restart-" + assignmentId),
+                "patientId", (Object) String.valueOf(assignment.getPatientId()),
+                "therapistId", (Object) String.valueOf(assignment.getTherapistId()),
+                "processName", (Object) assignment.getProcessName(),
+                "description", (Object) ("Yeniden başlatılan atama: " + assignment.getDescription()),
+                "startedBy", (Object) "SYSTEM_RESTART"
             ));
 
             // Yeni process instance key'i güncelle

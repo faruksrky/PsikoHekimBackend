@@ -9,7 +9,7 @@ import java.util.Map;
 public interface BpmnServiceClient {
 
     @PostMapping("/api/bpmn/patient/start-process")
-    Map<String, Object> startProcess(@RequestBody Map<String, String> request);
+    Map<String, Object> startProcess(@RequestBody Map<String, Object> request);
 
     @GetMapping("/api/bpmn/tasks")
     List<Map<String, Object>> getTasks(@RequestParam("processInstanceId") String processInstanceId);
