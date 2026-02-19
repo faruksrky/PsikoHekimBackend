@@ -2,6 +2,8 @@
   "realm": "psikohekim",
   "enabled": true,
   "displayName": "PsikoHekim",
+  "loginWithEmailAllowed": true,
+  "registrationEmailAsUsername": true,
   "displayNameHtml": "<div class=\"kc-logo-text\"><span>PsikoHekim</span></div>",
   "roles": {
     "realm": [
