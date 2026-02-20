@@ -58,7 +58,7 @@ public class TherapistServiceImpl implements TherapistService {
     public Map<String, List<TherapistResponse>> getTherapists(String email) {
         List<Therapist> therapists;
         if (email != null && !email.isBlank()) {
-            therapists = therapistRepository.findByTherapistEmail(email)
+            therapists = therapistRepository.findByTherapistEmailIgnoreCase(email)
                     .map(List::of)
                     .orElse(Collections.emptyList());
         } else {
@@ -92,7 +92,7 @@ public class TherapistServiceImpl implements TherapistService {
 
     @Override
     public Therapist findByEmail(String email) throws ResourceNotFoundException {
-        return therapistRepository.findByTherapistEmail(email)
+        return therapistRepository.findByTherapistEmailIgnoreCase(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Lütfen önce bir Danışman seçiniz"));
     }
 

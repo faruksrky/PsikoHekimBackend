@@ -9,4 +9,5 @@ public interface TherapistRepository extends JpaRepository<Therapist, Long> {
 
     boolean existsByTherapistEmail(String email);
     Optional<Therapist> findByTherapistEmail(String email);
+    Optional<Therapist> findByTherapistEmailIgnoreCase(String email);
 }
