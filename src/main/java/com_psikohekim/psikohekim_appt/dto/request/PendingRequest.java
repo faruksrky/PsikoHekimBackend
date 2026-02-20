@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 @Builder
 public class PendingRequest {
     private String processInstanceKey;
+    /** Frontend uyumluluğu için processInstanceKey ile aynı değer */
+    private String processId;
     private String processName;
     private String patientName;
     private String therapistId;
@@ -25,10 +27,15 @@ public class PendingRequest {
     private String startedBy;
 
     public static PendingRequest from(TherapistAssignment assignment, PatientResponse patient) {
+        String patientName = patient != null
+                ? (patient.getPatientFirstName() + " " + patient.getPatientLastName())
+                : ("Hasta #" + assignment.getPatientId());
+        String pk = assignment.getProcessInstanceKey();
         return PendingRequest.builder()
-                .processInstanceKey(assignment.getProcessInstanceKey())
+                .processInstanceKey(pk)
+                .processId(pk)
                 .processName(assignment.getProcessName())
-                .patientName(patient.getPatientFirstName() + " " + patient.getPatientLastName())
+                .patientName(patientName)
                 .therapistId(assignment.getTherapistId())
                 .status(assignment.getStatus())
                 .createdAt(assignment.getCreatedAt())

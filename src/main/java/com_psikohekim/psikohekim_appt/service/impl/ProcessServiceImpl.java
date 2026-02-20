@@ -211,12 +211,9 @@ public class ProcessServiceImpl implements ProcessService {
         try {
             Long patientId = Long.parseLong(req.getPatientId());
             PatientResponse patient = patients.get(patientId);
-
             if (patient == null) {
-                log.warn("No patient data found for ID: {}", patientId);
-                return null;
+                log.warn("No patient data found for ID: {} - row will still be returned for admin visibility", patientId);
             }
-
             return PendingRequest.from(req, patient);
         } catch (NumberFormatException e) {
             log.warn("Skipping invalid patientId: {}", req.getPatientId());
