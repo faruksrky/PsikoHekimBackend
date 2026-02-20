@@ -22,7 +22,7 @@ USERNAME="${1:?Kullanım: $0 <username> <new_password>}"
 NEW_PASSWORD="${2:?Kullanım: $0 <username> <new_password>}"
 
 ADMIN_USER="${KEYCLOAK_ADMIN:-admin}"
-ADMIN_PASS="${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD .env'de tanımlı olmalı}"
+ADMIN_PASS="${KEYCLOAK_ADMIN_PASSWORD:?KEYCLOAK_ADMIN_PASSWORD .env dosyasinda tanimli olmali}"
 REALM="psikohekim"
 KEYCLOAK_URL="http://localhost:8080"
 
@@ -61,10 +61,7 @@ RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT "$KEYCLOAK_URL/admin/realms/$REALM
 HTTP_CODE=$(echo "$RESPONSE" | tail -1)
 if [ "$HTTP_CODE" = "204" ] || [ "$HTTP_CODE" = "200" ]; then
   echo ">>> Başarılı! Şifre güncellendi."
-  echo ">>> Giriş testi:"
-  echo "curl -X POST \"https://auth.iyihislerapp.com/keycloak/getToken\" \\"
-  echo "  -H \"Content-Type: application/json\" \\"
-  echo "  -d '{\"username\":\"$USERNAME\",\"password\":\"***\"}'"
+  echo ">>> Giriş: curl -X POST https://auth.iyihislerapp.com/keycloak/getToken -H Content-Type:application/json -d username=$USERNAME"
 else
   echo "HATA: Şifre sıfırlanamadı (HTTP $HTTP_CODE)"
   echo "$RESPONSE" | head -n -1
