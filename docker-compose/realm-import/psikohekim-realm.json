@@ -57,11 +57,10 @@
       "credentials": [
         {
           "type": "password",
-          "value": "ChangeMe123!",
-          "temporary": true
+          "value": "PsikoHekim-Ofis28",
+          "temporary": false
         }
-      ],
-      "requiredActions": ["UPDATE_PASSWORD"]
+      ]
     }
   ]
 }
