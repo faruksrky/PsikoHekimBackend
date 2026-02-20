@@ -5,12 +5,13 @@
 set -e
 cd "$(dirname "$0")"
 
-echo "=== 1. Keycloak container ==="
-docker ps | grep keycloak || echo "HATA: Keycloak container çalışmıyor!"
+echo "=== 1. Keycloak (Keycloak projesinden) ==="
+docker ps | grep -E "keycloak|keycloak-auth" || echo "HATA: Keycloak container çalışmıyor!"
 
 echo ""
-echo "=== 2. Keycloak 8081 cevap veriyor mu? ==="
-curl -sI http://127.0.0.1:8081/ 2>/dev/null | head -3 || echo "HATA: Keycloak 8081'e cevap vermiyor!"
+echo "=== 2. Keycloak 8080 / auth-service 6700 cevap veriyor mu? ==="
+curl -sI http://127.0.0.1:8080/ 2>/dev/null | head -3 || echo "Keycloak 8080 cevap vermiyor"
+curl -sI http://127.0.0.1:6700/ 2>/dev/null | head -3 || echo "keycloak-auth-service 6700 cevap vermiyor"
 
 echo ""
 echo "=== 3. Nginx config dosyaları ==="

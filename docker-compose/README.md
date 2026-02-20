@@ -1,35 +1,27 @@
-# PsikoHekim - Docker Compose (Proje Bazlı)
+# PsikoHekim - Docker Compose
 
-3 proje ayrı ayrı ayağa kaldırılır. Her proje kendi gereksinimleriyle çalışır.
+Keycloak ayrı projede (Desktop/Keycloak). Bu repo sadece PsikoHekim backend ve BPMN.
 
-## Proje Sırası
+## Projeler
 
-| # | Proje | Klasör | Gereksinimler |
-|---|-------|--------|---------------|
-| 1 | Keycloak | `1-keycloak/` | PostgreSQL |
-| 2 | PsikoHekim Backend | `2-psikohekim/` | PostgreSQL, Redis, Keycloak URL |
-| 3 | BPMN | `3-bpmn/` | Elasticsearch, Zeebe |
+| Proje | Klasör | Açıklama |
+|-------|--------|----------|
+| PsikoHekim Backend | `2-psikohekim/` | PostgreSQL, Redis |
+| BPMN | `3-bpmn/` | Elasticsearch, Zeebe |
 
-## Proje 1: Keycloak
+## PsikoHekim Backend
 
 ```bash
 cd PsikoHekimBackend
-cp .env.example .env   # .env oluştur, POSTGRES_PASSWORD ve KEYCLOAK_ADMIN_PASSWORD doldur
-docker compose -f docker-compose/1-keycloak/docker-compose.yml --env-file .env up -d
+cp .env.example .env
+# .env: POSTGRES_PASSWORD, REDIS_PASSWORD, KEYCLOAK_ISSUER_URI doldur
+./deploy.sh psikohekim
 ```
 
-- **PostgreSQL** + **Keycloak** başlar
-- Keycloak: http://localhost:8080
-- Admin: KEYCLOAK_ADMIN / KEYCLOAK_ADMIN_PASSWORD
+## Keycloak
 
-## Proje 2: PsikoHekim
-
-Gereksinimler eklenecek (PostgreSQL, Redis, Keycloak URL).
-
-## Proje 3: BPMN
-
-Gereksinimler eklenecek (Elasticsearch, Zeebe).
+Keycloak ayrı projede: `cd ~/Keycloak && docker compose up -d`
 
 ## Arşiv
 
-Eski monolitik compose dosyaları `archive/` klasöründe.
+Eski compose dosyaları `archive/` klasöründe.
