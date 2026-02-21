@@ -44,7 +44,7 @@ public class PricingServiceImpl implements PricingService {
                 .orElseGet(() -> consultantEarningRepository.save(ConsultantEarning.builder()
                         .sessionId(sessionId)
                         .consultantId(session.getTherapistId())
-                        .consultantFee(null)
+                        .consultantFee(sessionFee)
                         .payoutStatus("PENDING")
                         .build()));
     }
