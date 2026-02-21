@@ -367,16 +367,23 @@ public class ProcessServiceImpl implements ProcessService {
 
     @Override
     public List<PendingRequest> getIncompleteAssignments() throws InvalidRequestException {
-        // PENDING durumundaki tüm atamaları getir
-        List<TherapistAssignment> incompleteAssignments = therapistAssignmentRepository
-                .findAllByStatus(TherapistAssignment.AssignmentStatus.PENDING);
+        return getAssignmentsForAdmin("pending");
+    }
 
-        if (incompleteAssignments.isEmpty()) {
+    @Override
+    public List<PendingRequest> getAssignmentsForAdmin(String statusFilter) throws InvalidRequestException {
+        List<TherapistAssignment> assignments;
+        if (statusFilter != null && "all".equalsIgnoreCase(statusFilter.trim())) {
+            assignments = therapistAssignmentRepository.findAll();
+        } else {
+            assignments = therapistAssignmentRepository
+                    .findAllByStatus(TherapistAssignment.AssignmentStatus.PENDING);
+        }
+        if (assignments.isEmpty()) {
             return Collections.emptyList();
         }
-
-        Map<Long, PatientResponse> patients = getPatientsMap(incompleteAssignments);
-        return createPendingRequestsResponse(incompleteAssignments, patients);
+        Map<Long, PatientResponse> patients = getPatientsMap(assignments);
+        return createPendingRequestsResponse(assignments, patients);
     }
 
     @Override
