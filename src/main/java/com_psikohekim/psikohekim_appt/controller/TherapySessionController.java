@@ -107,9 +107,11 @@ public class TherapySessionController {
     @PutMapping("/updateSession/{sessionId}")
     public ResponseEntity<SessionResponse> updateSession(
             @PathVariable Long sessionId,
-            @RequestBody SessionUpdateRequest request) {
+            @RequestBody SessionUpdateRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            SessionResponse response = sessionService.updateSession(sessionId, request);
+            boolean isAdmin = com_psikohekim.psikohekim_appt.util.JwtUtils.isAdminFromAuthHeader(authHeader);
+            SessionResponse response = sessionService.updateSession(sessionId, request, isAdmin);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             log.error("Error updating session {}: {}", sessionId, e.getMessage());

@@ -234,8 +234,8 @@ public class TherapySessionServiceImpl implements TherapySessionService {
     }
 
     @Override
-    public SessionResponse updateSession(Long sessionId, SessionUpdateRequest request) {
-        log.info("Updating session: {}", sessionId);
+    public SessionResponse updateSession(Long sessionId, SessionUpdateRequest request, boolean isAdmin) {
+        log.info("Updating session: {}, isAdmin: {}", sessionId, isAdmin);
 
         TherapySession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new RuntimeException("Session not found: " + sessionId));
@@ -246,8 +246,8 @@ public class TherapySessionServiceImpl implements TherapySessionService {
             throw new RuntimeException("Cannot modify completed session except notes");
         }
 
-        // Update fields
-        updateSessionFields(session, request);
+        // Update fields (sessionFee sadece admin güncelleyebilir)
+        updateSessionFields(session, request, isAdmin);
 
         TherapySession updatedSession = sessionRepository.save(session);
         if (request.getPaymentStatus() != null) {
@@ -751,14 +751,18 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         return !(newTime.isAfter(existingEnd) || newEnd.isBefore(existingTime));
     }
 
-    private void updateSessionFields(TherapySession session, SessionUpdateRequest request) {
+    private void updateSessionFields(TherapySession session, SessionUpdateRequest request, boolean isAdmin) {
+        // Session fee - sadece admin güncelleyebilir (danışman ücreti değiştiremez)
+        if (isAdmin) {
+            if (request.getSessionFee() != null) {
+                session.setSessionFee(request.getSessionFee());
+            }
+            if (request.getSessionFeeCurrency() != null) {
+                session.setSessionFeeCurrency(request.getSessionFeeCurrency());
+            }
+        }
+
         // Session details
-        if (request.getSessionFee() != null) {
-            session.setSessionFee(request.getSessionFee());
-        }
-        if (request.getSessionFeeCurrency() != null) {
-            session.setSessionFeeCurrency(request.getSessionFeeCurrency());
-        }
         if (request.getSessionType() != null) {
             session.setSessionType(request.getSessionType());
         }

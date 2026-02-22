@@ -36,9 +36,10 @@ public interface TherapySessionService {
      */
     List<SessionResponse> getAllSessionsForUser(String userEmail, boolean isAdmin, Long therapistId);
     /**
-     * Session'ı güncelle
+     * Session'ı güncelle.
+     * isAdmin=false ise sessionFee ve sessionFeeCurrency güncellenmez (danışman ücreti değiştiremez).
      */
-    SessionResponse updateSession(Long sessionId, SessionUpdateRequest request);
+    SessionResponse updateSession(Long sessionId, SessionUpdateRequest request, boolean isAdmin);
 
     /**
      * Session'ı getir
