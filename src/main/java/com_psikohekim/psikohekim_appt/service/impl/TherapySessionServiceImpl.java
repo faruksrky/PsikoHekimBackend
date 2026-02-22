@@ -636,6 +636,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         session.setUpdatedBy("SYSTEM");
 
         TherapySession updatedSession = sessionRepository.save(session);
+        pricingService.updateClientPaymentStatus(sessionId, paymentStatus);
         log.info("Payment updated for session: {}", sessionId);
 
         return sessionMapper.toResponseDto(updatedSession);
