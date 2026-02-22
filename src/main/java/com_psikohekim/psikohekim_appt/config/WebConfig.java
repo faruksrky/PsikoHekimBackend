@@ -40,6 +40,7 @@ public class WebConfig {
                                         "/therapist-patient/**",
                                         "/therapy-sessions/**",
                                         "/pricing/**",
+                                        "/finance/**",
                                         "/process/send-assignment-request",
                                         "/process/**",
                                         "/api/bpmn/**"
