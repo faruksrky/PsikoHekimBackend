@@ -116,6 +116,17 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
                                                   @Param("startDate") LocalDateTime startDate,
                                                   @Param("endDate") LocalDateTime endDate);
 
+    /**
+     * Tüm tamamlanmış seanslar - belirli ay/yıl için (finans özeti)
+     */
+    @Query("SELECT DISTINCT ts FROM TherapySession ts " +
+            "LEFT JOIN FETCH ts.therapist t " +
+            "LEFT JOIN FETCH ts.patient p " +
+            "WHERE ts.status = 'COMPLETED' " +
+            "AND MONTH(ts.scheduledDate) = :month AND YEAR(ts.scheduledDate) = :year " +
+            "ORDER BY ts.scheduledDate")
+    List<TherapySession> findCompletedSessionsByMonthYear(@Param("month") int month, @Param("year") int year);
+
     // ========== ANALYTICS QUERIES ==========
 
     /**

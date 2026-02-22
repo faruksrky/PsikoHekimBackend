@@ -31,6 +31,9 @@ public class ConsultantEarning {
     @Column(name = "payout_status", nullable = false)
     private String payoutStatus = "PENDING";
 
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

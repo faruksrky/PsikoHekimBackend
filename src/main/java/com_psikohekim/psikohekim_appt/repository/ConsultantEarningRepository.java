@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface ConsultantEarningRepository extends JpaRepository<ConsultantEarning, Long> {
     Optional<ConsultantEarning> findBySessionId(Long sessionId);
     List<ConsultantEarning> findByConsultantId(Long consultantId);
+    List<ConsultantEarning> findBySessionIdIn(List<Long> sessionIds);
 }
