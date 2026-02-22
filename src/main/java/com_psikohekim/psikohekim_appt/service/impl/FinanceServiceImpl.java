@@ -133,6 +133,12 @@ public class FinanceServiceImpl implements FinanceService {
                 .collect(Collectors.toList());
 
         List<SessionResponse> sessionResponses = sessionMapper.toResponseDtoList(sessions);
+        for (SessionResponse sr : sessionResponses) {
+            ClientSessionPrice csp = clientPriceBySession.get(sr.getSessionId());
+            if (csp != null && csp.getSessionPrice() != null) {
+                sr.setClientPrice(csp.getSessionPrice());
+            }
+        }
 
         return FinanceMonthlySummaryResponse.builder()
                 .year(year)

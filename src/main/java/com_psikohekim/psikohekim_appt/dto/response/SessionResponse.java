@@ -45,6 +45,8 @@ public class SessionResponse {
     // Finansal
     private BigDecimal sessionFee;
     private String sessionFeeCurrency;
+    /** Ciro: Danışan ödemesi (ClientSessionPrice) - Finans gelir listesinde kullanılır */
+    private BigDecimal clientPrice;
     @Builder.Default
     private String paymentStatus = "PENDING";
     private String paymentMethod;
