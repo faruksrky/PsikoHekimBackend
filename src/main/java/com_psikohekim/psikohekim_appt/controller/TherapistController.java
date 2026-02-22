@@ -36,6 +36,14 @@ public class TherapistController {
         return therapistService.addTherapist(therapist);
     }
 
+    @PutMapping("/{therapistId}")
+    public ResponseEntity<TherapistResponse> updateTherapist(
+            @PathVariable Long therapistId,
+            @RequestBody TherapistRequest therapist) throws ResourceNotFoundException, ConflictException {
+        TherapistResponse response = therapistService.updateTherapist(therapistId, therapist);
+        return ResponseEntity.ok(response);
+    }
+
     /**
      * Admin: tüm terapistler. Terapist (non-admin): email ile sadece kendi kaydı.
      * @param email Opsiyonel - verilirse sadece bu email'e ait terapist döner (terapist kendi bilgisi için)
