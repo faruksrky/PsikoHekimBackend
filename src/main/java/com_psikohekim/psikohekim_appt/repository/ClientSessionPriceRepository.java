@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface ClientSessionPriceRepository extends JpaRepository<ClientSessionPrice, Long> {
     Optional<ClientSessionPrice> findBySessionId(Long sessionId);
+    List<ClientSessionPrice> findBySessionIdIn(List<Long> sessionIds);
     List<ClientSessionPrice> findByClientId(Long clientId);
 }

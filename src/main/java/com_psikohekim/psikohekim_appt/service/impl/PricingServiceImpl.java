@@ -4,6 +4,7 @@ import com_psikohekim.psikohekim_appt.dto.response.ClientSessionPriceResponse;
 import com_psikohekim.psikohekim_appt.dto.response.ConsultantEarningResponse;
 import com_psikohekim.psikohekim_appt.model.ClientSessionPrice;
 import com_psikohekim.psikohekim_appt.model.ConsultantEarning;
+import com_psikohekim.psikohekim_appt.model.Therapist;
 import com_psikohekim.psikohekim_appt.model.TherapySession;
 import com_psikohekim.psikohekim_appt.repository.ClientSessionPriceRepository;
 import com_psikohekim.psikohekim_appt.repository.ConsultantEarningRepository;
@@ -31,20 +32,42 @@ public class PricingServiceImpl implements PricingService {
         Long sessionId = session.getTherapySessionId();
         BigDecimal sessionFee = session.getSessionFee() != null ? session.getSessionFee() : BigDecimal.ZERO;
 
+        Therapist therapist = session.getTherapist();
+        BigDecimal clientPrice;
+        BigDecimal consultantFee;
+
+        if (therapist != null && therapist.getTherapistAppointmentFee() != null && therapist.getTherapistConsultantFee() != null) {
+            // Ciro: Danışan ödemesi (appointmentFee), Hakediş: Danışman payı (consultantFee)
+            clientPrice = therapist.getTherapistAppointmentFee();
+            consultantFee = therapist.getTherapistConsultantFee();
+        } else {
+            // Geriye dönük uyumluluk: ikisi de sessionFee
+            clientPrice = sessionFee;
+            consultantFee = sessionFee;
+        }
+
         clientSessionPriceRepository.findBySessionId(sessionId)
+                .map(existing -> {
+                    existing.setSessionPrice(clientPrice);
+                    return clientSessionPriceRepository.save(existing);
+                })
                 .orElseGet(() -> clientSessionPriceRepository.save(ClientSessionPrice.builder()
                         .sessionId(sessionId)
                         .clientId(session.getPatientId())
-                        .sessionPrice(sessionFee)
+                        .sessionPrice(clientPrice)
                         .currency("TRY")
                         .paymentStatus(session.getPaymentStatus() != null ? session.getPaymentStatus() : "PENDING")
                         .build()));
 
         consultantEarningRepository.findBySessionId(sessionId)
+                .map(existing -> {
+                    existing.setConsultantFee(consultantFee);
+                    return consultantEarningRepository.save(existing);
+                })
                 .orElseGet(() -> consultantEarningRepository.save(ConsultantEarning.builder()
                         .sessionId(sessionId)
                         .consultantId(session.getTherapistId())
-                        .consultantFee(sessionFee)
+                        .consultantFee(consultantFee)
                         .payoutStatus("PENDING")
                         .build()));
     }

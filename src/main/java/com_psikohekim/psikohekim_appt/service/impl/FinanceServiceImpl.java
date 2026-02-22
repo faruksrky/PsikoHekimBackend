@@ -4,9 +4,11 @@ import com_psikohekim.psikohekim_appt.dto.response.FinanceMonthlySummaryResponse
 import com_psikohekim.psikohekim_appt.dto.response.SessionResponse;
 import com_psikohekim.psikohekim_appt.dto.response.TherapistMonthlyExpenseResponse;
 import com_psikohekim.psikohekim_appt.mapper.TherapySessionMapper;
+import com_psikohekim.psikohekim_appt.model.ClientSessionPrice;
 import com_psikohekim.psikohekim_appt.model.ConsultantEarning;
 import com_psikohekim.psikohekim_appt.model.Therapist;
 import com_psikohekim.psikohekim_appt.model.TherapySession;
+import com_psikohekim.psikohekim_appt.repository.ClientSessionPriceRepository;
 import com_psikohekim.psikohekim_appt.repository.ConsultantEarningRepository;
 import com_psikohekim.psikohekim_appt.repository.TherapySessionRepository;
 import com_psikohekim.psikohekim_appt.service.FinanceService;
@@ -28,6 +30,7 @@ public class FinanceServiceImpl implements FinanceService {
 
     private final TherapySessionRepository therapySessionRepository;
     private final ConsultantEarningRepository consultantEarningRepository;
+    private final ClientSessionPriceRepository clientSessionPriceRepository;
     private final PricingService pricingService;
     private final TherapySessionMapper sessionMapper;
 
@@ -41,6 +44,11 @@ public class FinanceServiceImpl implements FinanceService {
         List<Long> sessionIds = sessions.stream()
                 .map(TherapySession::getTherapySessionId)
                 .collect(Collectors.toList());
+
+        Map<Long, ClientSessionPrice> clientPriceBySession = sessionIds.isEmpty()
+                ? Map.of()
+                : clientSessionPriceRepository.findBySessionIdIn(sessionIds).stream()
+                        .collect(Collectors.toMap(ClientSessionPrice::getSessionId, p -> p));
 
         Map<Long, ConsultantEarning> earningBySession = sessionIds.isEmpty()
                 ? Map.of()
@@ -56,7 +64,13 @@ public class FinanceServiceImpl implements FinanceService {
 
         for (TherapySession session : sessions) {
             BigDecimal sessionFee = session.getSessionFee() != null ? session.getSessionFee() : BigDecimal.ZERO;
+            ClientSessionPrice clientPrice = clientPriceBySession.get(session.getTherapySessionId());
             ConsultantEarning earning = earningBySession.get(session.getTherapySessionId());
+
+            // Ciro: Danışan ödemesi (ClientSessionPrice.sessionPrice)
+            BigDecimal income = clientPrice != null && clientPrice.getSessionPrice() != null
+                    ? clientPrice.getSessionPrice()
+                    : sessionFee;
 
             BigDecimal consultantFee;
             String payoutStatus;
@@ -68,7 +82,7 @@ public class FinanceServiceImpl implements FinanceService {
                 payoutStatus = "PENDING";
             }
 
-            totalIncome = totalIncome.add(sessionFee);
+            totalIncome = totalIncome.add(income);
             totalExpense = totalExpense.add(consultantFee);
 
             if ("PAID".equalsIgnoreCase(payoutStatus)) {
