@@ -47,6 +47,10 @@ public class SessionResponse {
     private String sessionFeeCurrency;
     /** Ciro: Danışan ödemesi (ClientSessionPrice) - Finans gelir listesinde kullanılır */
     private BigDecimal clientPrice;
+    /** Danışman hakediş tutarı - Finans listesinde kullanılır */
+    private BigDecimal consultantFee;
+    /** Danışman hakediş durumu: PENDING, READY, PAID - Finans listesinde kullanılır */
+    private String consultantPayoutStatus;
     @Builder.Default
     private String paymentStatus = "PENDING";
     private String paymentMethod;

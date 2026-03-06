@@ -35,8 +35,10 @@ public class FinanceServiceImpl implements FinanceService {
     private final TherapySessionMapper sessionMapper;
 
     @Override
-    public FinanceMonthlySummaryResponse getMonthlySummary(int year, int month) {
-        List<TherapySession> sessions = therapySessionRepository.findCompletedSessionsByMonthYear(month, year);
+    public FinanceMonthlySummaryResponse getMonthlySummary(int year, int month, Long therapistId) {
+        List<TherapySession> sessions = therapistId != null
+                ? therapySessionRepository.findCompletedSessionsByMonthYearAndTherapist(month, year, therapistId)
+                : therapySessionRepository.findCompletedSessionsByMonthYear(month, year);
         for (TherapySession s : sessions) {
             pricingService.ensureSplitPricing(s);
         }
@@ -137,6 +139,15 @@ public class FinanceServiceImpl implements FinanceService {
             ClientSessionPrice csp = clientPriceBySession.get(sr.getSessionId());
             if (csp != null && csp.getSessionPrice() != null) {
                 sr.setClientPrice(csp.getSessionPrice());
+            }
+            ConsultantEarning earning = earningBySession.get(sr.getSessionId());
+            if (earning != null) {
+                if (earning.getConsultantFee() != null) {
+                    sr.setConsultantFee(earning.getConsultantFee());
+                }
+                if (earning.getPayoutStatus() != null) {
+                    sr.setConsultantPayoutStatus(earning.getPayoutStatus());
+                }
             }
         }
 

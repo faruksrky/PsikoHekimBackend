@@ -7,8 +7,9 @@ public interface FinanceService {
 
     /**
      * Aylık finans özeti - toplam + danışman başına ödenen/bekleyen
+     * @param therapistId Opsiyonel - verilirse sadece o danışmanın seansları (danışman kendi finansı için)
      */
-    FinanceMonthlySummaryResponse getMonthlySummary(int year, int month);
+    FinanceMonthlySummaryResponse getMonthlySummary(int year, int month, Long therapistId);
 
     /**
      * Danışmanın ay içi hakedişlerini ödendi olarak işaretle

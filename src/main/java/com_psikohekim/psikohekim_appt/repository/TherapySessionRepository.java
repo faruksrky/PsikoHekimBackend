@@ -127,6 +127,15 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
             "ORDER BY ts.scheduledDate")
     List<TherapySession> findCompletedSessionsByMonthYear(@Param("month") int month, @Param("year") int year);
 
+    @Query("SELECT DISTINCT ts FROM TherapySession ts " +
+            "LEFT JOIN FETCH ts.therapist t " +
+            "LEFT JOIN FETCH ts.patient p " +
+            "WHERE ts.status = 'COMPLETED' AND ts.therapistId = :therapistId " +
+            "AND MONTH(ts.scheduledDate) = :month AND YEAR(ts.scheduledDate) = :year " +
+            "ORDER BY ts.scheduledDate")
+    List<TherapySession> findCompletedSessionsByMonthYearAndTherapist(
+            @Param("month") int month, @Param("year") int year, @Param("therapistId") Long therapistId);
+
     // ========== ANALYTICS QUERIES ==========
 
     /**

@@ -19,9 +19,10 @@ public class FinanceController {
     public ResponseEntity<FinanceMonthlySummaryResponse> getMonthlySummary(
             @RequestParam int year,
             @RequestParam int month,
+            @RequestParam(required = false) Long therapistId,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            FinanceMonthlySummaryResponse response = financeService.getMonthlySummary(year, month);
+            FinanceMonthlySummaryResponse response = financeService.getMonthlySummary(year, month, therapistId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Error fetching finance monthly summary: {}", e.getMessage(), e);
