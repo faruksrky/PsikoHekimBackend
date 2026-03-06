@@ -93,15 +93,15 @@ public class FinanceServiceImpl implements FinanceService {
                 totalPending = totalPending.add(consultantFee);
             }
 
-            Long therapistId = session.getTherapistId();
+            Long sessionTherapistId = session.getTherapistId();
             Therapist therapist = session.getTherapist();
             String therapistName = therapist != null
                     ? therapist.getTherapistFirstName() + " " + therapist.getTherapistLastName()
                     : "Bilinmeyen Danışman";
 
-            therapistMap.computeIfAbsent(therapistId, k -> new TherapistSummary(therapistId, therapistName));
+            therapistMap.computeIfAbsent(sessionTherapistId, k -> new TherapistSummary(sessionTherapistId, therapistName));
 
-            TherapistSummary ts = therapistMap.get(therapistId);
+            TherapistSummary ts = therapistMap.get(sessionTherapistId);
             ts.sessionCount++;
             ts.totalEarning = ts.totalEarning.add(consultantFee);
             if ("PAID".equalsIgnoreCase(payoutStatus)) {
