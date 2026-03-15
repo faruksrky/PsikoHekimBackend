@@ -45,6 +45,24 @@ public class TherapistController {
     }
 
     /**
+     * Danışman silme
+     * DELETE /therapist/{therapistId}
+     */
+    @DeleteMapping("/{therapistId}")
+    public ResponseEntity<Void> deleteTherapist(@PathVariable Long therapistId) {
+        try {
+            therapistService.deleteTherapist(therapistId);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            log.error("Danışman bulunamadı: {}", therapistId, e);
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Danışman silme hatası: ", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * Admin: tüm terapistler. Terapist (non-admin): email ile sadece kendi kaydı.
      * @param email Opsiyonel - verilirse sadece bu email'e ait terapist döner (terapist kendi bilgisi için)
      */
