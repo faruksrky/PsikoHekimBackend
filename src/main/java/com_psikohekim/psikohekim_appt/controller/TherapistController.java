@@ -49,7 +49,7 @@ public class TherapistController {
      * DELETE /therapist/{therapistId}
      */
     @DeleteMapping("/{therapistId}")
-    public ResponseEntity<Void> deleteTherapist(@PathVariable Long therapistId) {
+    public ResponseEntity<?> deleteTherapist(@PathVariable Long therapistId) {
         try {
             therapistService.deleteTherapist(therapistId);
             return ResponseEntity.noContent().build();
@@ -58,7 +58,10 @@ public class TherapistController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Danışman silme hatası: ", e);
-            return ResponseEntity.internalServerError().build();
+            String message = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
+            return ResponseEntity.status(500).body(
+                java.util.Map.of("message", message != null ? message : "Danışman silinirken bir hata oluştu")
+            );
         }
     }
 

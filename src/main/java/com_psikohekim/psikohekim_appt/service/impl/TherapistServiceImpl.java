@@ -14,6 +14,8 @@ import com_psikohekim.psikohekim_appt.model.Therapist;
 import com_psikohekim.psikohekim_appt.repository.TherapistPatientRepository;
 import com_psikohekim.psikohekim_appt.repository.TherapistRepository;
 import com_psikohekim.psikohekim_appt.repository.CalendarRepository;
+import com_psikohekim.psikohekim_appt.repository.TherapySessionRepository;
+import com_psikohekim.psikohekim_appt.repository.AppointmentRepository;
 import com_psikohekim.psikohekim_appt.service.TherapistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,8 @@ public class TherapistServiceImpl implements TherapistService {
 
     private final TherapistRepository therapistRepository;
     private final TherapistPatientRepository therapistPatientRepository;
+    private final TherapySessionRepository therapySessionRepository;
+    private final AppointmentRepository appointmentRepository;
     private final CalendarRepository calendarRepository;
     private final ModelMapper modelMapper;
 
@@ -131,21 +135,35 @@ public class TherapistServiceImpl implements TherapistService {
         Therapist therapist = therapistRepository.findById(therapistId)
                 .orElseThrow(() -> new ResourceNotFoundException("Danışman bulunamadı"));
 
-        // 1. İlişkili TherapistPatient kayıtlarını sil (TherapySession cascade ile silinir)
+        // 1. TherapySession'ları sil (therapist_id FK - önce silinmeli)
+        var sessions = therapySessionRepository.findByTherapistIdOrderByScheduledDateDesc(therapistId);
+        if (!sessions.isEmpty()) {
+            therapySessionRepository.deleteAll(sessions);
+            log.info("{} adet terapi seansı silindi", sessions.size());
+        }
+
+        // 2. TherapistPatient atamalarını sil
         var assignments = therapistPatientRepository.findByTherapistId(therapistId);
         if (!assignments.isEmpty()) {
             therapistPatientRepository.deleteAll(assignments);
             log.info("{} adet danışan ataması silindi", assignments.size());
         }
 
-        // 2. Takvim etkinliklerini sil
+        // 3. Appointment kayıtlarını sil
+        var appointments = appointmentRepository.findByTherapistId(therapistId);
+        if (!appointments.isEmpty()) {
+            appointmentRepository.deleteAll(appointments);
+            log.info("{} adet randevu silindi", appointments.size());
+        }
+
+        // 4. Takvim etkinliklerini sil
         var calendarEvents = calendarRepository.findByTherapist(therapist);
         if (!calendarEvents.isEmpty()) {
             calendarRepository.deleteAll(calendarEvents);
             log.info("{} adet takvim etkinliği silindi", calendarEvents.size());
         }
 
-        // 3. Danışmanı sil
+        // 5. Danışmanı sil
         therapistRepository.delete(therapist);
         log.info("Danışman başarıyla silindi");
     }
