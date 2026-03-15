@@ -11,7 +11,9 @@ import com_psikohekim.psikohekim_appt.exception.ConflictException;
 import com_psikohekim.psikohekim_appt.exception.InvalidRequestException;
 import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
 import com_psikohekim.psikohekim_appt.model.Therapist;
+import com_psikohekim.psikohekim_appt.repository.TherapistPatientRepository;
 import com_psikohekim.psikohekim_appt.repository.TherapistRepository;
+import com_psikohekim.psikohekim_appt.repository.CalendarRepository;
 import com_psikohekim.psikohekim_appt.service.TherapistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 public class TherapistServiceImpl implements TherapistService {
 
     private final TherapistRepository therapistRepository;
+    private final TherapistPatientRepository therapistPatientRepository;
+    private final CalendarRepository calendarRepository;
     private final ModelMapper modelMapper;
 
 
@@ -127,6 +131,21 @@ public class TherapistServiceImpl implements TherapistService {
         Therapist therapist = therapistRepository.findById(therapistId)
                 .orElseThrow(() -> new ResourceNotFoundException("Danışman bulunamadı"));
 
+        // 1. İlişkili TherapistPatient kayıtlarını sil (TherapySession cascade ile silinir)
+        var assignments = therapistPatientRepository.findByTherapistId(therapistId);
+        if (!assignments.isEmpty()) {
+            therapistPatientRepository.deleteAll(assignments);
+            log.info("{} adet danışan ataması silindi", assignments.size());
+        }
+
+        // 2. Takvim etkinliklerini sil
+        var calendarEvents = calendarRepository.findByTherapist(therapist);
+        if (!calendarEvents.isEmpty()) {
+            calendarRepository.deleteAll(calendarEvents);
+            log.info("{} adet takvim etkinliği silindi", calendarEvents.size());
+        }
+
+        // 3. Danışmanı sil
         therapistRepository.delete(therapist);
         log.info("Danışman başarıyla silindi");
     }
