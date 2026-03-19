@@ -111,6 +111,21 @@ public class TherapySessionController {
         }
     }
 
+    /**
+     * Danışmanın tüm danışanlarına ait görüşme defteri - tek API çağrısı
+     * GET /therapy-sessions/therapist/{therapistId}/journal
+     */
+    @GetMapping("/therapist/{therapistId}/journal")
+    public ResponseEntity<List<SessionResponse>> getTherapistJournal(@PathVariable Long therapistId) {
+        try {
+            List<SessionResponse> journal = sessionService.getTherapistJournal(therapistId);
+            return ResponseEntity.ok(journal);
+        } catch (Exception e) {
+            log.error("Danışman görüşme defteri alınamadı: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/getSession/{sessionId}")
     public ResponseEntity<SessionResponse> getSession(@PathVariable Long sessionId) {
         try {

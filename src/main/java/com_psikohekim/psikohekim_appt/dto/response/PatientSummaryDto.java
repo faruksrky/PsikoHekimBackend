@@ -20,10 +20,15 @@ public class PatientSummaryDto {
     private Long assignmentId; // TherapistPatient assignment ID
     private Long patientId;
     private String patientName;
+    private String patientFirstName;
+    private String patientLastName;
     private String patientEmail;
     private String patientPhone;
     private Integer patientAge;
     private String patientGender;
+    private String patientCountry;
+    private String reasonForApplication;
+    private java.math.BigDecimal sessionFeePerSession;
 
     // İlişki bilgileri
     private LocalDateTime assignedAt;
