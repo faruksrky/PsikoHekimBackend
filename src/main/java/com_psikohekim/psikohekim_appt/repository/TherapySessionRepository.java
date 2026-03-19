@@ -81,6 +81,22 @@ public interface TherapySessionRepository extends JpaRepository<TherapySession, 
      */
     List<TherapySession> findByPatientIdAndStatus(Long patientId, SessionStatus status);
 
+    /**
+     * Danışanın görüşme defteri - patient + therapist + COMPLETED
+     */
+    @Query("SELECT DISTINCT ts FROM TherapySession ts " +
+            "LEFT JOIN FETCH ts.patient p LEFT JOIN FETCH ts.therapist t " +
+            "WHERE ts.patientId = :patientId AND ts.therapistId = :therapistId AND ts.status = 'COMPLETED'")
+    List<TherapySession> findPatientJournalByTherapist(@Param("patientId") Long patientId, @Param("therapistId") Long therapistId);
+
+    /**
+     * Danışanın tüm görüşme defteri (Admin) - COMPLETED
+     */
+    @Query("SELECT DISTINCT ts FROM TherapySession ts " +
+            "LEFT JOIN FETCH ts.patient p LEFT JOIN FETCH ts.therapist t " +
+            "WHERE ts.patientId = :patientId AND ts.status = 'COMPLETED'")
+    List<TherapySession> findPatientJournalAll(@Param("patientId") Long patientId);
+
     // ========== DATE BASED QUERIES ==========
 
     /**

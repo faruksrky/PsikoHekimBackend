@@ -20,6 +20,9 @@ public class Patient {
     @Column (nullable = false)
     private String patientLastName;
 
+    @Column(unique = true, length = 11)
+    private String patientTckn;
+
     private String patientGender;
     private Integer patientAge;
     private String patientEmail;
@@ -38,4 +41,8 @@ public class Patient {
 
     // Referans bilgisi
     private String patientReference;
+
+    // Başvurma sebebi (danışana özel not)
+    @Column(name = "reason_for_application", length = 2000)
+    private String reasonForApplication;
 }

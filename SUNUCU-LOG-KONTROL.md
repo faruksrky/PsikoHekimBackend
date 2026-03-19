@@ -1,5 +1,35 @@
 # Sunucu Log Kontrol Komutları
 
+## Randevu İstekleri / Inbox Boş mu? (BPMN + Zeebe)
+
+Akış: Randevu isteği → BPMN start-process → Zeebe süreci → send-assignment-request webhook → DB'ye TherapistAssignment → Inbox listesi
+
+**1. BPMN servisi çalışıyor mu?**
+```bash
+docker ps | grep -i bpmn
+curl -s -o /dev/null -w "%{http_code}" https://bpmn.iyihislerapp.com/api/bpmn/tasks?processInstanceId=test
+# 200 veya 404 beklenir, 502/000 = BPMN down
+```
+
+**2. Backend BPMN'ye ulaşabiliyor mu?**
+```bash
+docker logs psikohekim-backend 2>&1 | grep -i BPMN | tail -50
+# "BPMN Feign hatası" veya "Connection refused" varsa BPMN erişilemiyor
+```
+
+**3. start-process isteği başarılı mı?**
+```bash
+docker logs psikohekim-backend 2>&1 | grep "start-process" | tail -20
+# "BPMN start-process proxy: messageName=..." görülmeli
+```
+
+**4. DB'de PENDING atama var mı?**
+```bash
+docker exec psikohekim-postgres psql -U postgres -d psikohekim -c "SELECT assignment_id, patient_id, therapist_id, status, process_instance_key, created_at FROM therapist_assignment WHERE status='PENDING' ORDER BY created_at DESC LIMIT 10;"
+```
+
+---
+
 ## Backend (PsikoHekim) Logları
 
 ```bash

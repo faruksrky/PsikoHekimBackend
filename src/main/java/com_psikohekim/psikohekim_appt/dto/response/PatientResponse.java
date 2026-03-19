@@ -13,6 +13,7 @@ public class PatientResponse {
     private Long patientId;
     private String patientFirstName;
     private String patientLastName;
+    private String patientTckn;
     private String patientEmail;
     private String patientPhoneNumber;
     private String patientAddress;
@@ -24,5 +25,6 @@ public class PatientResponse {
     private String assignmentStatus;
     private List<TherapistResponse> therapist;
     private String patientReference;
+    private String reasonForApplication; // Başvurma Sebebi
 
 }

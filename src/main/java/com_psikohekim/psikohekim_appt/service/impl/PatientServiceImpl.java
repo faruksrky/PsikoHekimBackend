@@ -2,6 +2,8 @@ package com_psikohekim.psikohekim_appt.service.impl;
 
 import com_psikohekim.psikohekim_appt.dto.request.PatientRequest;
 import com_psikohekim.psikohekim_appt.dto.response.PatientResponse;
+import com_psikohekim.psikohekim_appt.exception.ConflictException;
+import com_psikohekim.psikohekim_appt.exception.InvalidRequestException;
 import com_psikohekim.psikohekim_appt.exception.ResourceNotFoundException;
 import com_psikohekim.psikohekim_appt.model.Patient;
 import com_psikohekim.psikohekim_appt.model.TherapistPatient;
@@ -30,14 +32,31 @@ public class PatientServiceImpl implements PatientService {
     private final ModelMapper modelMapper;
 
     @Override
-    public PatientResponse addPatient(PatientRequest patientRequest) {
+    public PatientResponse addPatient(PatientRequest patientRequest) throws InvalidRequestException, ConflictException {
+        validateTckn(patientRequest.getPatientTckn());
+        if (patientRepository.existsByPatientTckn(patientRequest.getPatientTckn())) {
+            throw new ConflictException("Bu TCKN ile kayıtlı danışan zaten mevcut.", "patientTckn");
+        }
         Patient patient = modelMapper.map(patientRequest, Patient.class);
         patientRepository.save(patient);
         return modelMapper.map(patient, PatientResponse.class);
     }
 
+    private void validateTckn(String tckn) throws InvalidRequestException {
+        if (tckn == null || tckn.isBlank()) {
+            throw new InvalidRequestException("TCKN zorunludur.", "patientTckn");
+        }
+        if (!tckn.matches("^[0-9]{11}$")) {
+            throw new InvalidRequestException("TCKN 11 rakamdan oluşmalıdır.", "patientTckn");
+        }
+    }
+
     @Override
-    public PatientResponse updatePatient(Long patientId, PatientRequest patientRequest) throws ResourceNotFoundException {
+    public PatientResponse updatePatient(Long patientId, PatientRequest patientRequest) throws ResourceNotFoundException, InvalidRequestException, ConflictException {
+        validateTckn(patientRequest.getPatientTckn());
+        if (patientRepository.existsByPatientTcknAndPatientIdNot(patientRequest.getPatientTckn(), patientId)) {
+            throw new ConflictException("Bu TCKN ile kayıtlı başka bir danışan zaten mevcut.", "patientTckn");
+        }
         // Önce mevcut patient'ı bul
         Patient existingPatient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found with ID: " + patientId));
@@ -45,6 +64,7 @@ public class PatientServiceImpl implements PatientService {
         // Yeni bilgileri güncelle
         existingPatient.setPatientFirstName(patientRequest.getPatientFirstName());
         existingPatient.setPatientLastName(patientRequest.getPatientLastName());
+        existingPatient.setPatientTckn(patientRequest.getPatientTckn());
         existingPatient.setPatientAge(patientRequest.getPatientAge());
         existingPatient.setPatientEmail(patientRequest.getPatientEmail());
         existingPatient.setPatientPhoneNumber(patientRequest.getPatientPhoneNumber());
@@ -113,6 +133,7 @@ public class PatientServiceImpl implements PatientService {
                             .patientId(patient.getPatientId())
                             .patientFirstName(patient.getPatientFirstName())
                             .patientLastName(patient.getPatientLastName())
+                            .patientTckn(patient.getPatientTckn())
                             .patientAge(patient.getPatientAge())
                             .patientEmail(patient.getPatientEmail())
                             .patientPhoneNumber(patient.getPatientPhoneNumber())

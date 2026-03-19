@@ -72,23 +72,41 @@ public class TherapySessionController {
             @RequestParam(required = false) Long therapistId,
             @RequestHeader(value = "Authorization", required = false) String authHeader) {
         try {
-            // TODO: JWT token'dan user email ve isAdmin bilgisini al
-            // Şimdilik therapistId parametresi ile çalışıyoruz
-            // Admin olduğunu controller'da kontrol etmeliyiz
-            boolean isAdmin = true; // TODO: JWT'den admin kontrolü yap
-            String userEmail = ""; // TODO: JWT'den email al
+            boolean isAdmin = com_psikohekim.psikohekim_appt.util.JwtUtils.isAdminFromAuthHeader(authHeader);
             
             List<SessionResponse> sessions;
             if (therapistId != null) {
                 // therapistId verilmişse o therapist'ın seanslarını getir
                 sessions = sessionService.getSessionsByTherapist(therapistId);
+            } else if (isAdmin) {
+                // Admin: therapistId yoksa tüm danışmanların seanslarını getir
+                sessions = sessionService.getAllSessionsForUser("", true, null);
             } else {
-                // therapistId yoksa tüm seansları getir (admin kontrolü yapılmalı)
-                sessions = sessionService.getAllSessionsForUser(userEmail, isAdmin, null);
+                // Admin değil ve therapistId yok - boş dön
+                sessions = List.of();
             }
             return ResponseEntity.ok(sessions);
         } catch (Exception e) {
             log.error("Error fetching all sessions: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Danışanın görüşme defteri (hasta hikayesi) - tamamlanmış görüşme notları
+     * GET /therapy-sessions/patient/{patientId}/journal
+     */
+    @GetMapping("/patient/{patientId}/journal")
+    public ResponseEntity<List<SessionResponse>> getPatientJournal(
+            @PathVariable Long patientId,
+            @RequestParam(required = false) Long therapistId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            boolean isAdmin = com_psikohekim.psikohekim_appt.util.JwtUtils.isAdminFromAuthHeader(authHeader);
+            List<SessionResponse> journal = sessionService.getPatientJournal(patientId, therapistId, isAdmin);
+            return ResponseEntity.ok(journal);
+        } catch (Exception e) {
+            log.error("Görüşme defteri alınamadı: {}", e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

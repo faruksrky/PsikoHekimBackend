@@ -24,7 +24,10 @@ public class CustomExceptionHandler {
 
     @ExceptionHandler(InvalidRequestException.class)
     public final ResponseEntity<CustomErrorResponse> handleInvalidRequestException(InvalidRequestException ex, WebRequest request) {
-        CustomErrorResponse errorResponse = new CustomErrorResponse(ex.getFieldName() + " ", HttpStatus.BAD_REQUEST.value());
+        String message = (ex.getMessage() != null && !ex.getMessage().isBlank())
+            ? ex.getMessage()
+            : ex.getFieldName();
+        CustomErrorResponse errorResponse = new CustomErrorResponse(message, HttpStatus.BAD_REQUEST.value());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 

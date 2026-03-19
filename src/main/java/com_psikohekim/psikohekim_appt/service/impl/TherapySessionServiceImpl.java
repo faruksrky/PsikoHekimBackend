@@ -452,6 +452,27 @@ public class TherapySessionServiceImpl implements TherapySessionService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<SessionResponse> getPatientJournal(Long patientId, Long therapistId, boolean isAdmin) {
+        List<TherapySession> sessions;
+        if (isAdmin) {
+            sessions = sessionRepository.findPatientJournalAll(patientId);
+        } else {
+            if (therapistId == null) {
+                return List.of();
+            }
+            // Danışman sadece kendi danışanının defterini görebilir
+            boolean hasAssignment = assignmentRepository.findByTherapistIdAndPatientId(therapistId, patientId).isPresent();
+            if (!hasAssignment) {
+                return List.of();
+            }
+            sessions = sessionRepository.findPatientJournalByTherapist(patientId, therapistId);
+        }
+        sessions.sort((a, b) -> b.getScheduledDate().compareTo(a.getScheduledDate()));
+        return sessionMapper.toResponseDtoList(sessions);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<SessionResponse> getSessionsByStatus(Long assignmentId, SessionStatus status) {
         List<TherapySession> sessions = sessionRepository.findByAssignment_TherapistPatientIdAndStatus(assignmentId, status);
         return sessionMapper.toResponseDtoList(sessions);

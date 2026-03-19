@@ -8,6 +8,7 @@ import lombok.Setter;
 public class PatientRequest {
     private String patientFirstName;
     private String patientLastName;
+    private String patientTckn;
     private String patientEmail;
     private String patientPhoneNumber;
     private String patientAddress;
@@ -17,6 +18,7 @@ public class PatientRequest {
     private String patientGender;
     private Long therapistId;
     private String patientReference;
+    private String reasonForApplication; // Başvurma Sebebi
     // PaymentMethod Patient entity'sinde yok, Payment entity'sinde var
 
 }
