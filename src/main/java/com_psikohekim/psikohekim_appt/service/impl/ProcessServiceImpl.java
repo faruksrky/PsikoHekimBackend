@@ -294,9 +294,19 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     private TherapistPatient createTherapistPatientRelation(TherapistAssignment assignment) {
+        String tidStr = assignment.getTherapistId();
+        if (tidStr == null || tidStr.isBlank()) {
+            throw new RuntimeException("Atamada danışman ID eksik. processInstanceKey=" + assignment.getProcessInstanceKey());
+        }
+        Long tid;
+        try {
+            tid = Long.valueOf(tidStr.trim());
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Atamada geçersiz danışman ID formatı: '" + tidStr + "' (processInstanceKey=" + assignment.getProcessInstanceKey() + ")");
+        }
         TherapistPatient relation = new TherapistPatient();
-        relation.setTherapist(therapistRepository.findById(Long.valueOf(assignment.getTherapistId()))
-                .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı")));
+        relation.setTherapist(therapistRepository.findById(tid)
+                .orElseThrow(() -> new ResourceNotFoundException("Terapist bulunamadı: therapistId=" + tid + " (Therapist tablosunda bu ID ile kayıt yok)")));
         relation.setPatient(patientRepository.findById(Long.valueOf(assignment.getPatientId()))
                 .orElseThrow(() -> new ResourceNotFoundException("Danışan bulunamadı")));
         relation.setAssignedAt(LocalDateTime.now());

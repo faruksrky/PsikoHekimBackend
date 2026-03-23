@@ -121,6 +121,11 @@ public interface TherapySessionService {
     List<SessionResponse> getTherapistJournal(Long therapistId);
 
     /**
+     * Tüm danışmanların görüşme defteri (Admin) - tüm tamamlanmış görüşmeler
+     */
+    List<SessionResponse> getAllTherapistsJournal();
+
+    /**
      * Status'a göre session'lar
      */
     List<SessionResponse> getSessionsByStatus(Long assignmentId, SessionStatus status);

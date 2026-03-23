@@ -480,6 +480,13 @@ public class TherapySessionServiceImpl implements TherapySessionService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<SessionResponse> getAllTherapistsJournal() {
+        List<TherapySession> sessions = sessionRepository.findAllTherapistsJournal();
+        return sessionMapper.toResponseDtoList(sessions);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<SessionResponse> getSessionsByStatus(Long assignmentId, SessionStatus status) {
         List<TherapySession> sessions = sessionRepository.findByAssignment_TherapistPatientIdAndStatus(assignmentId, status);
         return sessionMapper.toResponseDtoList(sessions);

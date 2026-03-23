@@ -93,6 +93,25 @@ public class TherapySessionController {
     }
 
     /**
+     * Tüm danışmanların görüşme defteri (sadece Admin)
+     * GET /therapy-sessions/journal
+     */
+    @GetMapping("/journal")
+    public ResponseEntity<List<SessionResponse>> getAllTherapistsJournal(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        try {
+            if (!com_psikohekim.psikohekim_appt.util.JwtUtils.isAdminFromAuthHeader(authHeader)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            List<SessionResponse> journal = sessionService.getAllTherapistsJournal();
+            return ResponseEntity.ok(journal);
+        } catch (Exception e) {
+            log.error("Görüşme defteri alınamadı: {}", e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
      * Danışanın görüşme defteri (hasta hikayesi) - tamamlanmış görüşme notları
      * GET /therapy-sessions/patient/{patientId}/journal
      */
