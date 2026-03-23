@@ -31,6 +31,11 @@ public interface TherapistPatientService {
     void unassignTherapistFromPatient(Long therapistId, Long patientId) throws ResourceNotFoundException;
 
     /**
+     * Assignment ID ile atamayı iptal etme (danışanı listeden kaldırma)
+     */
+    void deleteAssignmentById(Long assignmentId) throws ResourceNotFoundException;
+
+    /**
      * Belirli danışmanın tüm danışanlarını getirme
      */
     List<PatientSummaryDto> getTherapistPatients(Long therapistId, int page, int size) throws ResourceNotFoundException;

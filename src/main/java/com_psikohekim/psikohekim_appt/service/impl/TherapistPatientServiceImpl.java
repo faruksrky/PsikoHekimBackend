@@ -93,6 +93,22 @@ public class TherapistPatientServiceImpl implements TherapistPatientService {
     }
 
     @Override
+    @Transactional
+    public void deleteAssignmentById(Long assignmentId) throws ResourceNotFoundException {
+        log.info("Assignment {} iptal ediliyor (danışan listeden kaldırılıyor)", assignmentId);
+
+        TherapistPatient assignment = therapistPatientRepository.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Atama bulunamadı: " + assignmentId));
+
+        assignment.setAssignmentStatus(AssignmentStatus.CANCELLED);
+        assignment.setTreatmentEndDate(LocalDateTime.now());
+        assignment.setIsActive(false);
+        therapistPatientRepository.save(assignment);
+
+        log.info("Assignment {} başarıyla iptal edildi", assignmentId);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<PatientSummaryDto> getTherapistPatients(Long therapistId, int page, int size) throws ResourceNotFoundException {
         log.info("Danışman {} için hastalar getiriliyor (sayfa: {}, boyut: {})", therapistId, page, size);
@@ -101,9 +117,12 @@ public class TherapistPatientServiceImpl implements TherapistPatientService {
         getTherapistById(therapistId);
 
         Pageable pageable = PageRequest.of(page, size);
-        List<TherapistPatient> assignments = therapistPatientRepository.findByTherapistId(therapistId);
+        List<TherapistPatient> allAssignments = therapistPatientRepository.findByTherapistId(therapistId);
+        List<TherapistPatient> assignments = allAssignments.stream()
+                .filter(a -> a.getAssignmentStatus() == AssignmentStatus.ACTIVE)
+                .collect(Collectors.toList());
 
-        log.info("Found {} assignments for therapist {}", assignments.size(), therapistId);
+        log.info("Found {} active assignments for therapist {} (total: {})", assignments.size(), therapistId, allAssignments.size());
         if (!assignments.isEmpty()) {
             log.info("First assignment: id={}, patient={}",
                     assignments.get(0).getTherapistPatientId(),

@@ -59,6 +59,29 @@ public class TherapistPatientController {
     // ========== ASSIGNMENT MANAGEMENT ENDPOINTS ==========
 
     /**
+     * Assignment ID ile atamayı iptal etme (danışanı listeden kaldırma)
+     * Endpoint: DELETE /therapist-patient/assignment/{assignmentId}
+     */
+    @DeleteMapping("/assignment/{assignmentId}")
+    public ResponseEntity<ApiResponse<String>> deleteAssignmentById(@PathVariable Long assignmentId) {
+        try {
+            log.info("Assignment iptal ediliyor: assignmentId={}", assignmentId);
+
+            therapistPatientService.deleteAssignmentById(assignmentId);
+
+            return ResponseEntity.ok(ApiResponse.success("OK", "Danışan başarıyla listeden kaldırıldı"));
+
+        } catch (ResourceNotFoundException e) {
+            log.error("Assignment iptal hatası: {}", e.getMessage());
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Assignment iptal beklenmeyen hata: ", e);
+            return ResponseEntity.internalServerError()
+                    .body(ApiResponse.error("Sistem hatası", "Danışan listeden kaldırılamadı"));
+        }
+    }
+
+    /**
      * Assignment iptal etme
      * Endpoint: DELETE /api/therapist-patient/{therapistId}/patients/{patientId}
      */
