@@ -24,7 +24,8 @@ public class SessionScheduleRequest {
 
     private BigDecimal sessionFee;
     private String sessionFeeCurrency;
-    private String sessionType; // INITIAL, REGULAR, FOLLOWUP, FINAL
+    private String sessionType; // INDIVIDUAL, GROUP, COUPLE, FAMILY veya INITIAL, REGULAR, FOLLOWUP, FINAL
+    private String sessionDuration; // FULL, HALF
     private String sessionFormat; // IN_PERSON, ONLINE, PHONE
     private String notes;
     

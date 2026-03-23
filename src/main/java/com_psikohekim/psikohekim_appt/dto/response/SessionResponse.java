@@ -59,6 +59,8 @@ public class SessionResponse {
     @Builder.Default
     private String sessionType = "REGULAR";
     @Builder.Default
+    private String sessionDuration = "FULL";
+    @Builder.Default
     private String sessionFormat = "IN_PERSON";
     private Integer sessionRating;
     private String homeworkAssigned;

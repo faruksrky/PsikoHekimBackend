@@ -75,6 +75,7 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         session.setSessionFee(request.getSessionFee());
         session.setSessionFeeCurrency(request.getSessionFeeCurrency() != null ? request.getSessionFeeCurrency() : "TRY");
         session.setSessionType(request.getSessionType());
+        session.setSessionDuration(request.getSessionDuration() != null ? request.getSessionDuration() : "FULL");
         session.setSessionFormat(request.getSessionFormat());
         session.setSessionNotes(request.getNotes());
         
@@ -801,6 +802,9 @@ public class TherapySessionServiceImpl implements TherapySessionService {
         // Session details
         if (request.getSessionType() != null) {
             session.setSessionType(request.getSessionType());
+        }
+        if (request.getSessionDuration() != null) {
+            session.setSessionDuration(request.getSessionDuration());
         }
         if (request.getSessionFormat() != null) {
             session.setSessionFormat(request.getSessionFormat());

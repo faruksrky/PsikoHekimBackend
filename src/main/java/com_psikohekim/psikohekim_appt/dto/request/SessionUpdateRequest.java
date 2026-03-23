@@ -19,6 +19,7 @@ public class SessionUpdateRequest {
     private BigDecimal sessionFee;
     private String sessionFeeCurrency;
     private String sessionType;
+    private String sessionDuration; // FULL, HALF
     private String sessionFormat;
 
     // Completion fields

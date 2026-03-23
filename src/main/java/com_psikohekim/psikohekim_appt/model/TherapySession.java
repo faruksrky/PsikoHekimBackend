@@ -94,8 +94,11 @@ public class TherapySession {
     private String paymentMethod;
 
     // ========== SEANS TÜRÜ ==========
-    @Column(name = "session_type") // INITIAL, REGULAR, FOLLOWUP, FINAL
+    @Column(name = "session_type") // INDIVIDUAL, GROUP, COUPLE, FAMILY veya INITIAL, REGULAR, FOLLOWUP, FINAL
     private String sessionType = "REGULAR";
+
+    @Column(name = "session_duration", length = 10) // FULL, HALF
+    private String sessionDuration = "FULL";
 
     @Column(name = "session_format") // IN_PERSON, ONLINE, PHONE
     private String sessionFormat = "IN_PERSON";

@@ -98,6 +98,7 @@ public class TherapySessionMapper {
 
                 // Session type info
                 .sessionType(session.getSessionType())
+                .sessionDuration(session.getSessionDuration() != null ? session.getSessionDuration() : "FULL")
                 .sessionFormat(session.getSessionFormat())
                 .sessionRating(session.getSessionRating())
                 .homeworkAssigned(session.getHomeworkAssigned())
