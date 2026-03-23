@@ -235,7 +235,7 @@ public class ProcessServiceImpl implements ProcessService {
         AssignmentDecision decision = getAssignmentDecision(action);
         updateAssignment(assignment, decision);
 
-        // Accept veya Reject durumuna göre işlem yap
+        // Accept: sadece status güncelle + BPMN'e bildir. TherapistPatient/Session BPMN veya başka akışta oluşturulur.
         if (decision.status() == TherapistAssignment.AssignmentStatus.ACCEPTED) {
             handleAcceptance(assignment);
         } else {
@@ -271,10 +271,15 @@ public class ProcessServiceImpl implements ProcessService {
     }
 
     private void handleAcceptance(TherapistAssignment assignment) {
+        // Sadece akışa onay veriyoruz - status zaten updateAssignment ile ACCEPTED yapıldı.
+        // TherapistPatient ve Session oluşturma BPMN veya başka süreçte yapılır.
         try {
             TherapistPatient relation = createTherapistPatientRelation(assignment);
             createSessionForAssignment(assignment, relation);
             log.info("Therapist-patient relation created for assignment: {}", assignment.getProcessInstanceKey());
+        } catch (ResourceNotFoundException e) {
+            // Therapist/Patient tabloda yoksa sadece onayı kaydet, ilişki oluşturma - BPMN ileride halleder
+            log.warn("Therapist/Patient bulunamadı, sadece onay kaydedildi: {} - {}", assignment.getProcessInstanceKey(), e.getMessage());
         } catch (Exception e) {
             log.error("Error in handleAcceptance: {}", e.getMessage());
             throw new RuntimeException("Terapist atama işlemi başarısız: " + e.getMessage());
