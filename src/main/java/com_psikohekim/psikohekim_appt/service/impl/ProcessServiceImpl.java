@@ -75,9 +75,12 @@ public class ProcessServiceImpl implements ProcessService {
 
         PatientResponse patient = validateAndGetPatient(patientId);
 
+        boolean adminApprovalOnly = Boolean.TRUE.equals(request.get("requiresAdminApproval"))
+                || Boolean.TRUE.equals(request.get("adminApprovalOnly"));
+
         TherapistAssignment assignment = createAndSaveAssignment(
                 patientId, processInstanceKey, therapistId, processName, description, startedBy,
-                scheduledDate, sessionType, sessionFormat
+                scheduledDate, sessionType, sessionFormat, adminApprovalOnly
         );
 
         return AssignmentResponse.from(assignment, patient);
@@ -135,7 +138,8 @@ public class ProcessServiceImpl implements ProcessService {
             String startedBy,
             LocalDateTime scheduledDate,
             String sessionType,
-            String sessionFormat
+            String sessionFormat,
+            boolean adminApprovalOnly
     ) {
         TherapistAssignment assignment = new TherapistAssignment();
         assignment.setPatientId(patientId);
@@ -148,6 +152,7 @@ public class ProcessServiceImpl implements ProcessService {
         assignment.setSessionType(sessionType);
         assignment.setSessionFormat(sessionFormat != null ? sessionFormat : "IN_PERSON");
         assignment.setStatus(TherapistAssignment.AssignmentStatus.PENDING);
+        assignment.setAdminApprovalOnly(adminApprovalOnly);
         assignment.setCreatedAt(LocalDateTime.now());
         assignment.setUpdatedAt(LocalDateTime.now());
         return therapistAssignmentRepository.save(assignment);
@@ -162,7 +167,10 @@ public class ProcessServiceImpl implements ProcessService {
         List<TherapistAssignment> requests = therapistAssignmentRepository
                 .findAllByTherapistId(
                         String.valueOf(therapistId)
-                );
+                )
+                .stream()
+                .filter(a -> !Boolean.TRUE.equals(a.getAdminApprovalOnly()))
+                .collect(Collectors.toList());
 
         if (requests.isEmpty()) {
             return Collections.emptyList();

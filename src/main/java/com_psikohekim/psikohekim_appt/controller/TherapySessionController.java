@@ -76,8 +76,8 @@ public class TherapySessionController {
             
             List<SessionResponse> sessions;
             if (therapistId != null) {
-                // therapistId verilmişse o therapist'ın seanslarını getir
-                sessions = sessionService.getSessionsByTherapist(therapistId);
+                // therapistId verilmişse o therapist'ın seanslarını getir (danışman: onay bekleyenleri gösterme)
+                sessions = sessionService.getSessionsByTherapist(therapistId, isAdmin);
             } else if (isAdmin) {
                 // Admin: therapistId yoksa tüm danışmanların seanslarını getir
                 sessions = sessionService.getAllSessionsForUser("", true, null);
@@ -319,8 +319,11 @@ public class TherapySessionController {
      * GET /api/therapy-sessions/therapist/{therapistId}
      */
     @GetMapping("/therapist/{therapistId}")
-    public ResponseEntity<List<SessionResponse>> getSessionsByTherapist(@PathVariable Long therapistId) {
-        List<SessionResponse> sessions = sessionService.getSessionsByTherapist(therapistId);
+    public ResponseEntity<List<SessionResponse>> getSessionsByTherapist(
+            @PathVariable Long therapistId,
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+        boolean isAdmin = com_psikohekim.psikohekim_appt.util.JwtUtils.isAdminFromAuthHeader(authHeader);
+        List<SessionResponse> sessions = sessionService.getSessionsByTherapist(therapistId, isAdmin);
         return ResponseEntity.ok(sessions);
     }
 

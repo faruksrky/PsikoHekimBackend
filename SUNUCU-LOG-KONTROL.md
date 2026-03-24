@@ -4,6 +4,8 @@
 
 Akış: Randevu isteği → BPMN start-process → Zeebe süreci → send-assignment-request webhook → DB'ye TherapistAssignment → Inbox listesi
 
+**Önemli:** Frontend, danışmanın oluşturduğu randevularda `variables.requiresAdminApproval: true` gönderir. Zeebe işçisi (worker) `/process/send-assignment-request` çağrısına bu alanı **JSON gövdesine** eklemelidir; backend `adminApprovalOnly=true` kaydeder ve kayıt **yalnızca admin** gelen kutusunda (`/process/inbox/pending` parametresiz) görünür, danışmanın kendi inbox filtresinde çıkar.
+
 **1. BPMN servisi çalışıyor mu?**
 ```bash
 docker ps | grep -i bpmn

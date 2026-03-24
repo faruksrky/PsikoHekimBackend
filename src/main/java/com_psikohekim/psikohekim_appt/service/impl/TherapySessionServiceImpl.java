@@ -439,8 +439,13 @@ public class TherapySessionServiceImpl implements TherapySessionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<SessionResponse> getSessionsByTherapist(Long therapistId) {
+    public List<SessionResponse> getSessionsByTherapist(Long therapistId, boolean includePendingApproval) {
         List<TherapySession> sessions = sessionRepository.findByTherapistIdOrderByScheduledDateDesc(therapistId);
+        if (!includePendingApproval) {
+            sessions = sessions.stream()
+                    .filter(s -> s.getStatus() != SessionStatus.PENDING_APPROVAL)
+                    .toList();
+        }
         return sessionMapper.toResponseDtoList(sessions);
     }
 

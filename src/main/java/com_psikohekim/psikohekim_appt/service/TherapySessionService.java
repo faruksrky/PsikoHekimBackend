@@ -101,9 +101,10 @@ public interface TherapySessionService {
     Page<SessionResponse> getSessionsByAssignment(Long assignmentId, Pageable pageable);
 
     /**
-     * Therapist'in session'ları
+     * Therapist'in session'ları.
+     * @param includePendingApproval false ise danışman listesinde PENDING_APPROVAL (yönetici onayı bekleyen) gizlenir.
      */
-    List<SessionResponse> getSessionsByTherapist(Long therapistId);
+    List<SessionResponse> getSessionsByTherapist(Long therapistId, boolean includePendingApproval);
 
     /**
      * Patient'ın session'ları

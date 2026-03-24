@@ -41,4 +41,11 @@ public class TherapistAssignment {
     private String startedBy;
     private String rejectionReason;
     private LocalDateTime rejectedAt;
+
+    /**
+     * true: Onay sadece admin gelen kutusunda; danışman kendi inbox'ında görmez.
+     * (Danışmanın girdiği randevu / takvim akışı için)
+     */
+    @Column(nullable = false)
+    private Boolean adminApprovalOnly = false;
 }
